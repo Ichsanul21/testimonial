@@ -5,11 +5,13 @@ namespace Database\Seeders;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class AdminSeeder extends Seeder
 {
     public function run(): void
     {
+        DB::table('event_user')->truncate();
         User::truncate();
 
         $superAdmin = User::create([
