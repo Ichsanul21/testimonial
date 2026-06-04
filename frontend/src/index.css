@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: Inter, sans-serif;
+  --font-serif: Playfair Display, serif;
+
+  --color-wedding-bg: #0A0A14;
+  --color-wedding-card: rgba(255,255,255,0.05);
+  --color-wedding-border: rgba(212,175,55,0.2);
+  --color-wedding-gold: #D4AF37;
+  --color-wedding-gold-light: #F6E27A;
+  --color-wedding-text: #F1F1F1;
+
+  --color-corporate-bg: #F8FAFC;
+  --color-corporate-surface: #FFFFFF;
+  --color-corporate-teal: #0D9488;
+  --color-corporate-navy: #1B2A4A;
+  --color-corporate-border: #E2E8F0;
+  --color-corporate-text: #1E293B;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOutLeft {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-100px); }
+}
+
+@keyframes checkmark {
+  0% { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes fadeScaleIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
