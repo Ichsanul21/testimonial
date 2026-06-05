@@ -6,13 +6,16 @@ use App\Models\Event;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class AdminSeeder extends Seeder
 {
     public function run(): void
     {
+        Schema::disableForeignKeyConstraints();
         DB::table('event_user')->truncate();
         User::truncate();
+        Schema::enableForeignKeyConstraints();
 
         $superAdmin = User::create([
             'name' => 'Super Admin',

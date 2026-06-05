@@ -26,6 +26,7 @@ backend/.phpunit.cache
 frontend/node_modules
 frontend/dist
 frontend/dist-ssr
+frontend/package-lock.json
 
 # === OS ===
 .DS_Store
