@@ -7,6 +7,16 @@ use App\Models\Testimonial;
 
 class EventController extends Controller
 {
+    public function index()
+    {
+        $events = Event::where('is_active', true)
+            ->select('id', 'name', 'slug', 'description', 'date', 'location', 'icon', 'color')
+            ->orderBy('date', 'desc')
+            ->get();
+
+        return response()->json(['data' => $events]);
+    }
+
     public function show(string $slug)
     {
         $event = Event::where('slug', $slug)

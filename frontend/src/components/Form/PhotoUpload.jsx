@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 
 export default function PhotoUpload({ file, onFileChange }) {
   const [preview, setPreview] = useState(null)
+  const compressionRef = useRef(false)
 
   useEffect(() => {
     if (file) {
@@ -13,9 +14,60 @@ export default function PhotoUpload({ file, onFileChange }) {
     setPreview(null)
   }, [file])
 
+  const compressImage = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = (e) => {
+        const img = new Image()
+        img.src = e.target.result
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const MAX_WIDTH = 1200
+          let { width, height } = img
+
+          if (width > MAX_WIDTH) {
+            height = Math.round(height * (MAX_WIDTH / width))
+            width = MAX_WIDTH
+          }
+
+          canvas.width = width
+          canvas.height = height
+
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, width, height)
+
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              reject(new Error('Gagal kompres foto'))
+              return
+            }
+            const compressed = new File([blob], 'photo.jpg', {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            })
+            resolve(compressed)
+          }, 'image/jpeg', 0.8)
+        }
+        img.onerror = () => reject(new Error('Gagal membaca foto'))
+      }
+      reader.onerror = () => reject(new Error('Gagal membaca file'))
+    })
+  }
+
   const onDrop = useCallback(
-    (accepted) => {
-      if (accepted.length > 0) onFileChange(accepted[0])
+    async (accepted) => {
+      if (accepted.length > 0) {
+        try {
+          compressionRef.current = true
+          const compressed = await compressImage(accepted[0])
+          onFileChange(compressed)
+        } catch {
+          onFileChange(accepted[0])
+        } finally {
+          compressionRef.current = false
+        }
+      }
     },
     [onFileChange]
   )
@@ -23,15 +75,14 @@ export default function PhotoUpload({ file, onFileChange }) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { 'image/jpeg': [], 'image/png': [], 'image/webp': [] },
-    maxSize: 5 * 1024 * 1024,
+    maxSize: 10 * 1024 * 1024,
     multiple: false,
   })
 
   return (
     <div>
       <label className="block text-sm font-medium mb-1.5 text-slate-700">
-        Foto <span className="text-red-500">*</span>
-        <span className="text-slate-400 font-normal"> (max 5MB, jpg/png/webp)</span>
+        Foto <span className="text-slate-400">(opsional, otomatis dikompres)</span>
       </label>
 
       <div

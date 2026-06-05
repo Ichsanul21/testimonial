@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../services/api'
+import heroBg from '../assets/hero.png'
 
 export default function EventDetailPage() {
   const { slug } = useParams()
@@ -43,8 +44,12 @@ export default function EventDetailPage() {
   const displayUrl = `${window.location.origin}/display/${event.slug}`
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      <div className="max-w-2xl mx-auto px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 relative">
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-[0.03] pointer-events-none"
+        style={{ backgroundImage: `url(${heroBg})` }}
+      />
+      <div className="max-w-2xl mx-auto px-4 py-12 relative">
         <div className="text-center mb-10">
           <div className="text-6xl mb-4">{event.icon || '📋'}</div>
           <h1 className="text-3xl font-bold text-slate-800 font-serif mb-2">

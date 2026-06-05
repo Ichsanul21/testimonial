@@ -37,7 +37,7 @@ class TestimonialController extends Controller
             'phone_email' => 'nullable|string|max:255',
             'relationship' => 'required|string|in:Teman,Keluarga,Rekan Kerja,Lainnya',
             'testimonial' => 'required|string|max:1000',
-            'photo' => 'required|image|max:5120',
+            'photo' => 'nullable|image|max:5120',
         ]);
 
         $event = Event::find($validated['event_id']);
@@ -55,7 +55,13 @@ class TestimonialController extends Controller
             }
         }
 
-        $path = $request->file('photo')->store('photos', 'public');
+        $path = $request->hasFile('photo')
+            ? $request->file('photo')->store('photos', 'public')
+            : null;
+
+        if ($path) {
+            $this->compressImage(Storage::disk('public')->path($path));
+        }
 
         $autoApprove = Setting::getValue('auto_approve', 'true') === 'true';
 
@@ -70,5 +76,49 @@ class TestimonialController extends Controller
         ]);
 
         return response()->json($testimonial, 201);
+    }
+
+    private function compressImage(string $path, int $maxWidth = 1200, int $quality = 75): void
+    {
+        if (!file_exists($path)) {
+            return;
+        }
+
+        // Frontend sudah kompres (file < 500KB) — skip
+        if (filesize($path) <= 512000) {
+            return;
+        }
+
+        $info = getimagesize($path);
+        if (!$info) {
+            return;
+        }
+
+        [$width, $height, $type] = $info;
+
+        $image = match ($type) {
+            IMAGETYPE_JPEG => @imagecreatefromjpeg($path),
+            IMAGETYPE_PNG => @imagecreatefrompng($path),
+            IMAGETYPE_WEBP => @imagecreatefromwebp($path),
+            IMAGETYPE_GIF => @imagecreatefromgif($path),
+            default => null,
+        };
+
+        if (!$image) {
+            return;
+        }
+
+        if ($width > $maxWidth) {
+            $newWidth = $maxWidth;
+            $newHeight = (int) round($height * ($maxWidth / $width));
+            $resized = imagescale($image, $newWidth, $newHeight, IMG_BILINEAR_FIXED);
+            if ($resized !== false) {
+                imagedestroy($image);
+                $image = $resized;
+            }
+        }
+
+        imagejpeg($image, $path, $quality);
+        imagedestroy($image);
     }
 }

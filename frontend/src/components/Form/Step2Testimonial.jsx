@@ -5,7 +5,7 @@ const MAX_CHARS = 1000
 
 export default function Step2Testimonial({ data, file, onFieldChange, onFileChange, onBack, onSubmit, submitting }) {
   const charsLeft = MAX_CHARS - (data.testimonial?.length || 0)
-  const canSubmit = data.testimonial?.trim() && file
+  const canSubmit = data.testimonial?.trim()
 
   const handleSubmit = (e) => {
     e.preventDefault()

@@ -1,14 +1,26 @@
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 
 const relationships = ['Teman', 'Keluarga', 'Rekan Kerja', 'Lainnya']
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const phoneRegex = /^08\d{8,12}$/
 
 export default function Step1Personal({ data, onChange, onNext }) {
-  const errors = {}
-  if (!data.name?.trim()) errors.name = 'Nama lengkap wajib diisi'
+  const errors = useMemo(() => {
+    const errs = {}
+    if (!data.name?.trim()) errs.name = 'Nama lengkap wajib diisi'
+    if (data.phone_email?.trim()) {
+      const val = data.phone_email.trim()
+      if (!emailRegex.test(val) && !phoneRegex.test(val)) {
+        errs.phone_email = 'Masukkan email valid atau nomor HP (08xx)'
+      }
+    }
+    return errs
+  }, [data.name, data.phone_email])
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!data.name?.trim()) return
+    if (Object.keys(errors).length > 0) return
     onNext()
   }
 
@@ -43,8 +55,9 @@ export default function Step1Personal({ data, onChange, onNext }) {
             value={data.phone_email || ''}
             onChange={(e) => onChange({ ...data, phone_email: e.target.value })}
             placeholder="0812xxxx atau email@example.com"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition"
+            className={`w-full px-4 py-3 rounded-xl border ${errors.phone_email ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition`}
           />
+          {errors.phone_email && <p className="text-red-500 text-xs mt-1">{errors.phone_email}</p>}
         </div>
 
         <div>
@@ -71,7 +84,7 @@ export default function Step1Personal({ data, onChange, onNext }) {
 
         <button
           type="submit"
-          disabled={!data.name?.trim()}
+          disabled={Object.keys(errors).length > 0}
           className="w-full py-3.5 rounded-2xl font-semibold text-white transition-all bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-teal-200"
         >
           Lanjut

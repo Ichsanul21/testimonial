@@ -9,6 +9,7 @@ use App\Http\Controllers\TestimonialController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('throttle:30,1')->group(function () {
+    Route::get('events', [EventController::class, 'index']);
     Route::get('events/{slug}', [EventController::class, 'show']);
     Route::get('events/{slug}/testimonials', [EventController::class, 'testimonials']);
     Route::get('testimonials', [TestimonialController::class, 'index']);
@@ -20,6 +21,8 @@ Route::prefix('admin')->middleware('throttle:60,1')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
     Route::get('me', [AuthController::class, 'me'])->middleware('auth:sanctum');
+    Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('reset-password', [AuthController::class, 'resetPassword']);
 
     Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
         Route::apiResource('events', AdminEventController::class);
@@ -38,6 +41,7 @@ Route::prefix('admin')->middleware('throttle:60,1')->group(function () {
         Route::get('testimonials', [AdminController::class, 'testimonials']);
         Route::delete('testimonials/{id}', [AdminController::class, 'takedown']);
         Route::post('testimonials/{id}/restore', [AdminController::class, 'restore']);
+        Route::post('testimonials/batch', [AdminController::class, 'batch']);
         Route::get('settings/{key}', [AdminController::class, 'settings']);
         Route::post('settings', [AdminController::class, 'updateSettings']);
         Route::post('testimonials/{id}/priority', [AdminController::class, 'setPriority']);
@@ -50,6 +54,7 @@ Route::middleware(['auth:sanctum', 'role:event_admin', 'throttle:60,1'])->prefix
     Route::get('events/{id}', [EventAdminController::class, 'show']);
     Route::post('events/{id}/refresh-qr', [EventAdminController::class, 'refreshQR']);
     Route::get('testimonials', [EventAdminController::class, 'testimonials']);
+    Route::post('testimonials/batch', [EventAdminController::class, 'batch']);
     Route::post('testimonials/{id}/takedown', [EventAdminController::class, 'takedown']);
     Route::post('testimonials/{id}/restore', [EventAdminController::class, 'restore']);
     Route::post('testimonials/{id}/priority', [EventAdminController::class, 'setPriority']);

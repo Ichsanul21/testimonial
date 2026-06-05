@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { SkeletonTable } from '../ui/Skeleton'
 
 export default function TestimonialTable({ eventId = null }) {
   const { user } = useAuth()
@@ -13,6 +14,8 @@ export default function TestimonialTable({ eventId = null }) {
   const [lastPage, setLastPage] = useState(1)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('newest')
+  const [selectedIds, setSelectedIds] = useState([])
+  const [batchLoading, setBatchLoading] = useState(false)
   const [priorityLimitMsg, setPriorityLimitMsg] = useState('')
 
   const endpoint = `${apiPrefix}/testimonials`
@@ -36,6 +39,10 @@ export default function TestimonialTable({ eventId = null }) {
     fetchData()
   }, [fetchData])
 
+  useEffect(() => {
+    setSelectedIds([])
+  }, [page, search])
+
   const handleTakedown = async (id) => {
     if (isSuperAdmin) {
       await api.delete(`${apiPrefix}/testimonials/${id}`)
@@ -57,9 +64,41 @@ export default function TestimonialTable({ eventId = null }) {
       fetchData()
     } catch (err) {
       if (err.response?.status === 422) {
-        setPriorityLimitMsg(err.response.data.message || 'Maksimal 5 prioritas')
+        setPriorityLimitMsg(err.response.data.message || 'Maksimal 10 prioritas')
         setTimeout(() => setPriorityLimitMsg(''), 3000)
       }
+    }
+  }
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    )
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === testimonials.length) {
+      setSelectedIds([])
+    } else {
+      setSelectedIds(testimonials.map((t) => t.id))
+    }
+  }
+
+  const handleBatch = async (action) => {
+    setBatchLoading(true)
+    try {
+      const payload = { action, ids: selectedIds }
+      if (action === 'priority') {
+        const first = testimonials.find((t) => selectedIds.includes(t.id))
+        payload.is_priority = first ? !first.is_priority : true
+      }
+      await api.post(`${apiPrefix}/testimonials/batch`, payload)
+      setSelectedIds([])
+      fetchData()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setBatchLoading(false)
     }
   }
 
@@ -95,10 +134,53 @@ export default function TestimonialTable({ eventId = null }) {
         </div>
       )}
 
+      {selectedIds.length > 0 && (
+        <div className="mb-4 p-3 rounded-xl bg-teal-50 border border-teal-200 flex items-center gap-3 flex-wrap">
+          <span className="text-sm font-medium text-teal-700">
+            {selectedIds.length} terpilih
+          </span>
+          <button
+            onClick={() => handleBatch('takedown')}
+            disabled={batchLoading}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition disabled:opacity-50"
+          >
+            Batch Takedown
+          </button>
+          <button
+            onClick={() => handleBatch('restore')}
+            disabled={batchLoading}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition disabled:opacity-50"
+          >
+            Batch Restore
+          </button>
+          <button
+            onClick={() => handleBatch('priority')}
+            disabled={batchLoading}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-600 hover:bg-amber-100 transition disabled:opacity-50"
+          >
+            Batch Prioritas
+          </button>
+          <button
+            onClick={() => setSelectedIds([])}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:bg-slate-200 transition"
+          >
+            Batal
+          </button>
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-2xl border border-slate-100">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-50 text-slate-600">
+              <th className="py-3.5 px-4 w-10">
+                <input
+                  type="checkbox"
+                  checked={testimonials.length > 0 && selectedIds.length === testimonials.length}
+                  onChange={toggleSelectAll}
+                  className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                />
+              </th>
               <th className="text-left py-3.5 px-4 font-semibold">No</th>
               <th className="text-left py-3.5 px-4 font-semibold">Nama</th>
               <th className="text-left py-3.5 px-4 font-semibold max-w-xs">Testimonial</th>
@@ -111,12 +193,20 @@ export default function TestimonialTable({ eventId = null }) {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
-              <tr><td colSpan={8} className="text-center py-12 text-slate-400">Memuat...</td></tr>
+              <tr><td colSpan={9} className="px-4 py-6"><SkeletonTable rows={5} /></td></tr>
             ) : testimonials.length === 0 ? (
-              <tr><td colSpan={8} className="text-center py-12 text-slate-400">Belum ada data</td></tr>
+              <tr><td colSpan={9} className="text-center py-12 text-slate-400">Belum ada data</td></tr>
             ) : (
               testimonials.map((t, i) => (
-                <tr key={t.id} className="hover:bg-slate-50 transition">
+                <tr key={t.id} className={`hover:bg-slate-50 transition ${selectedIds.includes(t.id) ? 'bg-teal-50/50' : ''}`}>
+                  <td className="py-3.5 px-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(t.id)}
+                      onChange={() => toggleSelect(t.id)}
+                      className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                    />
+                  </td>
                   <td className="py-3.5 px-4 text-slate-500">{(page - 1) * 20 + i + 1}</td>
                   <td className="py-3.5 px-4 font-medium text-slate-800">{t.name}</td>
                   <td className="py-3.5 px-4 text-slate-500 max-w-xs truncate">{t.testimonial}</td>
@@ -143,7 +233,7 @@ export default function TestimonialTable({ eventId = null }) {
                           ? 'text-amber-500 bg-amber-50 hover:bg-amber-100'
                           : 'text-slate-300 hover:text-amber-400 hover:bg-amber-50'
                       }`}
-                      title={t.is_priority ? 'Hapus prioritas' : 'Jadikan prioritas (max 5)'}
+                      title={t.is_priority ? 'Hapus prioritas' : 'Jadikan prioritas'}
                     >
                       <svg className="w-5 h-5" fill={t.is_priority ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />

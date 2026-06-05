@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\Testimonial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class EventAdminController extends Controller
 {
@@ -81,7 +82,10 @@ class EventAdminController extends Controller
         $eventIds = $request->user()->events()->pluck('events.id');
 
         $testimonial = Testimonial::whereIn('event_id', $eventIds)->findOrFail($id);
-        $testimonial->update(['is_active' => false]);
+        if ($testimonial->photo) {
+            Storage::disk('public')->delete($testimonial->photo);
+        }
+        $testimonial->update(['is_active' => false, 'photo' => null]);
 
         return response()->json(['message' => 'Testimonial berhasil ditakedown']);
     }
@@ -109,6 +113,52 @@ class EventAdminController extends Controller
         return response()->json([
             'message' => 'Kata terlarang berhasil diperbarui',
             'banned_words' => $event->fresh()->banned_words,
+        ]);
+    }
+
+    public function batch(Request $request)
+    {
+        $validated = $request->validate([
+            'action' => 'required|string|in:takedown,restore,priority',
+            'ids' => 'required|array|max:50',
+            'ids.*' => 'integer|exists:testimonials,id',
+            'is_priority' => 'boolean|required_if:action,priority',
+        ]);
+
+        $eventIds = $request->user()->events()->pluck('events.id');
+        $query = Testimonial::whereIn('testimonials.id', $validated['ids'])
+            ->whereIn('event_id', $eventIds);
+        $count = 0;
+
+        if ($validated['action'] === 'takedown') {
+            $testimonials = $query->get();
+            foreach ($testimonials as $t) {
+                if ($t->photo) {
+                    Storage::disk('public')->delete($t->photo);
+                }
+                $t->update(['is_active' => false, 'photo' => null]);
+                $count++;
+            }
+        } elseif ($validated['action'] === 'restore') {
+            $ids = $query->pluck('id');
+            $count = Testimonial::whereIn('id', $ids)->update(['is_active' => true]);
+        } elseif ($validated['action'] === 'priority') {
+            $isPriority = $validated['is_priority'] ?? true;
+            $testimonials = $query->get();
+            foreach ($testimonials as $t) {
+                if ($isPriority) {
+                    $already = Testimonial::where('event_id', $t->event_id)
+                        ->where('is_priority', true)->count();
+                    if ($already >= 10) continue;
+                }
+                $t->update(['is_priority' => $isPriority]);
+                $count++;
+            }
+        }
+
+        return response()->json([
+            'message' => "{$count} testimonial berhasil diproses",
+            'count' => $count,
         ]);
     }
 

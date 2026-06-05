@@ -5,6 +5,7 @@ import { getTheme } from '../../themes/themeConfig'
 import TestimonialCard from './TestimonialCard'
 import { WeddingDecorations, CorporateDecorations } from './ThemeDecorations'
 import BackgroundWaves from './BackgroundWaves'
+import Skeleton from '../ui/Skeleton'
 
 const COLS = 5
 const CARD_W = 176
@@ -63,13 +64,10 @@ export default function FloatingDisplay({ themeName = 'wedding', eventSlug = nul
       <BackgroundWaves themeName={themeName} />
 
       {loading && !testimonials?.length && (
-        <div
-          className="absolute inset-0 flex items-center justify-center opacity-40 z-20"
-          style={{ color: theme.textColor }}
-        >
-          <p className="text-2xl font-semibold">
-            {isWedding ? '✨ Testimonial ✨' : 'Testimonial'}
-          </p>
+        <div className="absolute inset-0 flex items-center justify-center z-20" style={{ gap: 24 }}>
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} width="176px" height="210px" rounded="xl" />
+          ))}
         </div>
       )}
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../services/api'
+import { SkeletonCard } from '../ui/Skeleton'
 
 export default function SettingsCard() {
   const [autoApprove, setAutoApprove] = useState(true)
@@ -36,7 +37,7 @@ export default function SettingsCard() {
     }
   }
 
-  if (loading) return <div className="text-slate-400 text-sm">Memuat...</div>
+  if (loading) return <SkeletonCard />
 
   return (
     <div className="space-y-6">
