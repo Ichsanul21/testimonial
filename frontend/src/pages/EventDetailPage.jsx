@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../services/api'
 import heroBg from '../assets/hero.png'
+import { IconSearch, IconClipboard, IconCalendar, IconPin, IconPencil, IconArrowRight } from '../components/ui/Icons'
 
 export default function EventDetailPage() {
   const { slug } = useParams()
@@ -29,7 +30,9 @@ export default function EventDetailPage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="text-6xl mb-4">🔍</div>
+          <div className="mb-4 flex justify-center">
+            <IconSearch className="w-16 h-16 text-slate-300" />
+          </div>
           <h1 className="text-2xl font-bold text-slate-800 mb-2">Acara Tidak Ditemukan</h1>
           <p className="text-slate-500 mb-6">{error}</p>
           <Link to="/" className="text-teal-600 hover:text-teal-700 font-medium">
@@ -51,7 +54,13 @@ export default function EventDetailPage() {
       />
       <div className="max-w-2xl mx-auto px-4 py-12 relative">
         <div className="text-center mb-10">
-          <div className="text-6xl mb-4">{event.icon || '📋'}</div>
+          <div className="mb-4 flex justify-center">
+            {event.icon ? (
+              <span className="text-6xl">{event.icon}</span>
+            ) : (
+              <IconClipboard className="w-16 h-16 text-slate-300" />
+            )}
+          </div>
           <h1 className="text-3xl font-bold text-slate-800 font-serif mb-2">
             {event.name}
           </h1>
@@ -59,8 +68,8 @@ export default function EventDetailPage() {
             <p className="text-slate-500 max-w-md mx-auto">{event.description}</p>
           )}
           <div className="flex items-center justify-center gap-4 mt-4 text-sm text-slate-400">
-            {event.date && <span>📅 {event.date}</span>}
-            {event.location && <span>📍 {event.location}</span>}
+            {event.date && <span className="inline-flex items-center gap-1"><IconCalendar size="w-4 h-4" /> {event.date}</span>}
+            {event.location && <span className="inline-flex items-center gap-1"><IconPin size="w-4 h-4" /> {event.location}</span>}
           </div>
         </div>
 
@@ -90,7 +99,7 @@ export default function EventDetailPage() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-medium text-sm hover:from-teal-600 hover:to-emerald-600 transition"
             >
-              ✏️ Beri Testimonial
+              <IconPencil size="w-5 h-5" /> Beri Testimonial
             </a>
           </div>
         </div>
@@ -100,7 +109,7 @@ export default function EventDetailPage() {
             to={`/display/${event.slug}`}
             className="inline-flex items-center gap-2 text-sm text-teal-600 hover:text-teal-700 font-medium"
           >
-            Lihat Testimonial yang Masuk →
+            Lihat Testimonial yang Masuk <IconArrowRight size="w-4 h-4" />
           </Link>
         </div>
       </div>

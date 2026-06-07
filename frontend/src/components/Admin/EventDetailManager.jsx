@@ -3,6 +3,7 @@ import api from '../../services/api'
 import TestimonialTable from './TestimonialTable'
 import DisplaySettingsCard from './DisplaySettingsCard'
 import { useAuth } from '../../contexts/AuthContext'
+import { IconArrowLeft, IconClipboard, IconArrowUpRight } from '../ui/Icons'
 
 export default function EventDetailManager({ eventId, onBack }) {
   const { user } = useAuth()
@@ -38,12 +39,12 @@ export default function EventDetailManager({ eventId, onBack }) {
 
   return (
     <div>
-      <button onClick={onBack} className="mb-4 text-sm text-teal-600 hover:text-teal-700 font-medium">
-        ← Kembali ke daftar acara
+      <button onClick={onBack} className="mb-4 text-sm text-teal-600 hover:text-teal-700 font-medium inline-flex items-center gap-1">
+        <IconArrowLeft size="w-4 h-4" /> Kembali ke daftar acara
       </button>
 
       <div className="flex items-center gap-3 mb-6">
-        <span className="text-3xl">{event.icon || '📋'}</span>
+        <span className="text-3xl">{event.icon ? <span>{event.icon}</span> : <IconClipboard className="w-8 h-8 text-slate-300" />}</span>
         <div>
           <h2 className="text-xl font-bold text-slate-800">{event.name}</h2>
           <p className="text-sm text-slate-400">/{event.slug}</p>
@@ -124,7 +125,7 @@ function EventInfoPanel({ event, onUpdate, isEditable = true, apiPrefix = '/admi
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Icon</label>
-          <input value={form.icon} onChange={(e) => isEditable && setForm({ ...form, icon: e.target.value })} readOnly={!isEditable} className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 ${!isEditable ? 'bg-slate-50 text-slate-500' : 'border-slate-200'}`} placeholder="💍" />
+          <input value={form.icon} onChange={(e) => isEditable && setForm({ ...form, icon: e.target.value })} readOnly={!isEditable} className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 ${!isEditable ? 'bg-slate-50 text-slate-500' : 'border-slate-200'}`} placeholder="Icon" />
         </div>
       </div>
       <div>
@@ -361,7 +362,7 @@ function EventQRPanel({ event, formUrl, displayUrl, onRegenerate, apiPrefix = '/
             rel="noopener noreferrer"
             className="text-teal-600 hover:text-teal-700 text-sm font-medium"
           >
-            {displayUrl} ↗
+            {displayUrl} <IconArrowUpRight size="w-4 h-4" className="inline" />
           </a>
         </div>
       </div>

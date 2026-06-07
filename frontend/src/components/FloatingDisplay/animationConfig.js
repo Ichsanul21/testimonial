@@ -1,5 +1,3 @@
-import { getTheme } from '../../themes/themeConfig'
-
 export const MOVEMENT_VARIANTS = {
   'scroll-left': {
     animate: (scrollDist) => ({ x: [0, -scrollDist] }),
@@ -9,7 +7,7 @@ export const MOVEMENT_VARIANTS = {
       ease: 'linear',
     }),
     description: 'Geser ke kiri (default)',
-    icon: '⬅️',
+    icon: 'IconArrowLeftSlim',
   },
   'scroll-right': {
     animate: (scrollDist) => ({ x: [-scrollDist, 0] }),
@@ -19,7 +17,7 @@ export const MOVEMENT_VARIANTS = {
       ease: 'linear',
     }),
     description: 'Geser ke kanan',
-    icon: '➡️',
+    icon: 'IconArrowRightSlim',
   },
   alternating: {
     animate: (scrollDist, rowIdx) => ({
@@ -31,7 +29,7 @@ export const MOVEMENT_VARIANTS = {
       ease: 'linear',
     }),
     description: 'Baris bergantian arah',
-    icon: '↔️',
+    icon: 'IconArrowLeftRight',
   },
   float: {
     animate: () => ({ y: [0, -6, 0, 6, 0] }),
@@ -41,7 +39,7 @@ export const MOVEMENT_VARIANTS = {
       ease: 'easeInOut',
     }),
     description: 'Melayang di tempat',
-    icon: '🕊️',
+    icon: 'IconDove',
   },
   carousel: {
     animate: () => ({ scale: [0.85, 1, 0.85], opacity: [0.4, 1, 0.4] }),
@@ -51,7 +49,7 @@ export const MOVEMENT_VARIANTS = {
       ease: 'easeInOut',
     }),
     description: 'Karusel (fade tengah)',
-    icon: '🎠',
+    icon: 'IconCarousel',
   },
 }
 
@@ -94,6 +92,45 @@ export const CARD_OUT_VARIANTS = {
   },
 }
 
+export const NEW_ITEM_VARIANTS = {
+  'pop-up': {
+    initial: { opacity: 0, scale: 0 },
+    animate: { opacity: 1, scale: 1 },
+    transition: { type: 'spring', stiffness: 200, damping: 18 },
+    description: 'Pop-up (scale)',
+  },
+  'slide-in': {
+    initial: { opacity: 0, x: 300 },
+    animate: { opacity: 1, x: 0 },
+    transition: { type: 'spring', stiffness: 120, damping: 18 },
+    description: 'Slide dari kanan',
+  },
+  glow: {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    transition: { duration: 0.6, ease: 'easeOut' },
+    description: 'Fade + glow',
+  },
+  bounce: {
+    initial: { opacity: 0, scale: 0, y: 100 },
+    animate: { opacity: 1, scale: 1, y: 0 },
+    transition: { type: 'spring', stiffness: 150, damping: 10, bounce: 0.5 },
+    description: 'Bounce masuk',
+  },
+  flip: {
+    initial: { opacity: 0, rotateY: 90 },
+    animate: { opacity: 1, rotateY: 0 },
+    transition: { duration: 0.7, ease: 'easeOut' },
+    description: 'Flip 3D',
+  },
+  none: {
+    initial: {},
+    animate: {},
+    transition: { duration: 0 },
+    description: 'Langsung masuk',
+  },
+}
+
 export function getBackgroundStyle(displaySettings, themeName) {
   if (!displaySettings) {
     return { background: getTheme(themeName).background }
@@ -117,3 +154,5 @@ export function getBackgroundStyle(displaySettings, themeName) {
       return { background: getTheme(themeName).background }
   }
 }
+
+

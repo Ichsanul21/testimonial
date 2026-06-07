@@ -16,6 +16,8 @@ Route::middleware('throttle:30,1')->group(function () {
     Route::get('testimonials', [TestimonialController::class, 'index']);
 });
 
+Route::get('events/{slug}/testimonials/stream', [EventController::class, 'streamTestimonials']);
+
 Route::middleware('throttle:5,1')->post('testimonials', [TestimonialController::class, 'store']);
 
 Route::prefix('admin')->middleware('throttle:60,1')->group(function () {

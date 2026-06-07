@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { IconParty } from '../ui/Icons'
 
 export default function SuccessScreen({ onReset }) {
   return (
@@ -24,9 +25,12 @@ export default function SuccessScreen({ onReset }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">
-          Testimonial Terkirim! 🎉
-        </h2>
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <h2 className="text-2xl font-bold text-slate-800">
+            Testimonial Terkirim!
+          </h2>
+          <IconParty className="w-8 h-8 text-yellow-500" />
+        </div>
         <p className="text-slate-500 mb-8 max-w-sm mx-auto">
           Terima kasih! Testimonial kamu akan muncul di layar display setelah disetujui.
         </p>

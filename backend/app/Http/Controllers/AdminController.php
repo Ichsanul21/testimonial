@@ -188,6 +188,9 @@ class AdminController extends Controller
             'animation_movement' => $event->animation_movement,
             'animation_in' => $event->animation_in,
             'animation_out' => $event->animation_out,
+            'new_item_animation' => $event->new_item_animation,
+            'new_item_duration' => $event->new_item_duration,
+            'poll_interval' => $event->poll_interval,
         ]);
     }
 
@@ -202,6 +205,9 @@ class AdminController extends Controller
             'animation_movement' => 'required|string|in:scroll-left,scroll-right,alternating,float,carousel',
             'animation_in' => 'required|string|in:fade,scale,slide',
             'animation_out' => 'required|string|in:fade,scale,slide',
+            'new_item_animation' => 'sometimes|string|in:pop-up,slide-in,glow,bounce,flip,none',
+            'new_item_duration' => 'sometimes|integer|min:2|max:8',
+            'poll_interval' => 'sometimes|string|in:realtime,normal',
         ]);
 
         $event->update($validated);
@@ -216,6 +222,9 @@ class AdminController extends Controller
                 'animation_movement' => $event->fresh()->animation_movement,
                 'animation_in' => $event->fresh()->animation_in,
                 'animation_out' => $event->fresh()->animation_out,
+                'new_item_animation' => $event->fresh()->new_item_animation,
+                'new_item_duration' => $event->fresh()->new_item_duration,
+                'poll_interval' => $event->fresh()->poll_interval,
             ],
         ]);
     }

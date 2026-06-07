@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { IconClipboard, IconCalendar, IconPin } from '../ui/Icons'
 
 export default function EventsManager({ onSelect }) {
   const { user } = useAuth()
@@ -81,7 +82,7 @@ export default function EventsManager({ onSelect }) {
                 <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Lokasi (opsional)" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30" />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <input value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} placeholder="Icon (opsional) 💍" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30" />
+                <input value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} placeholder="Icon (opsional)" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30" />
                 <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="w-full h-[42px] rounded-xl border border-slate-200 cursor-pointer" />
               </div>
               <div className="flex gap-3 pt-2">
@@ -105,11 +106,11 @@ export default function EventsManager({ onSelect }) {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{event.icon || '📋'}</span>
+                <span className="text-2xl">{event.icon ? <span>{event.icon}</span> : <IconClipboard className="w-8 h-8 text-slate-300" />}</span>
                 <div>
                   <h3 className="font-medium text-slate-800">{event.name}</h3>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    {event.date && `📅 ${event.date}`} {event.location && `📍 ${event.location}`}
+                    {event.date && <span className="inline-flex items-center gap-1"><IconCalendar size="w-3.5 h-3.5" /> {event.date}</span>} {event.location && <span className="inline-flex items-center gap-1 ml-2"><IconPin size="w-3.5 h-3.5" /> {event.location}</span>}
                   </p>
                 </div>
               </div>

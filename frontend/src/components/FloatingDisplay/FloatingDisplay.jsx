@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import useTestimonials from '../../hooks/useTestimonials'
+import useEventSourceTestimonials from '../../hooks/useEventSourceTestimonials'
 import { getTheme } from '../../themes/themeConfig'
 import TestimonialCard from './TestimonialCard'
 import { WeddingDecorations, CorporateDecorations } from './ThemeDecorations'
 import BackgroundWaves from './BackgroundWaves'
 import DisplayBranding from './DisplayBranding'
+import NewItemOverlay from './NewItemOverlay'
 import { MOVEMENT_VARIANTS, getBackgroundStyle } from './animationConfig'
 import Skeleton from '../ui/Skeleton'
 import api from '../../services/api'
@@ -27,16 +28,25 @@ function distribute(arr, n) {
 }
 
 export default function FloatingDisplay({ themeName = 'wedding', eventSlug = null }) {
-  const { testimonials, priorityIds, loading } = useTestimonials({ all: true, eventSlug })
-  const [isFullscreen, setIsFullscreen] = useState(false)
   const [displaySettings, setDisplaySettings] = useState(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [carouselIdx, setCarouselIdx] = useState(0)
+  const [newItemIndex, setNewItemIndex] = useState(0)
+  const [processedNewIds, setProcessedNewIds] = useState(new Set())
   const theme = getTheme(themeName)
   const isWedding = themeName === 'wedding'
+
+  const pollInterval = displaySettings?.poll_interval || 'realtime'
+  const { queue, priorityIds, loading, newItems, clearNewItems } = useEventSourceTestimonials({
+    eventSlug,
+    pollInterval,
+  })
 
   const movement = displaySettings?.animation_movement || 'scroll-left'
   const animIn = displaySettings?.animation_in || 'fade'
   const animOut = displaySettings?.animation_out || 'fade'
+  const newItemAnim = displaySettings?.new_item_animation || 'pop-up'
+  const newItemDur = displaySettings?.new_item_duration ?? 4
   const moveCfg = MOVEMENT_VARIANTS[movement] || MOVEMENT_VARIANTS['scroll-left']
 
   useEffect(() => {
@@ -54,14 +64,34 @@ export default function FloatingDisplay({ themeName = 'wedding', eventSlug = nul
     return () => clearInterval(timer)
   }, [movement])
 
+  useEffect(() => {
+    if (newItems.length > 0) {
+      const unprocessed = newItems.filter((item) => !processedNewIds.has(item.id))
+      if (unprocessed.length > 0) {
+        setNewItemIndex((prev) => prev + 1)
+      }
+    }
+  }, [newItems, processedNewIds])
+
+  const handleNewItemComplete = (item) => {
+    setProcessedNewIds((prev) => {
+      const next = new Set(prev)
+      next.add(item.id)
+      return next
+    })
+    if (newItems.every((ni) => processedNewIds.has(ni.id) || ni.id === item.id)) {
+      clearNewItems()
+    }
+  }
+
   const priorityCards = useMemo(() => {
-    if (!testimonials?.length || !priorityIds?.length) return []
-    return testimonials.filter((t) => priorityIds.includes(t.id))
-  }, [testimonials, priorityIds])
+    if (!queue?.length || !priorityIds?.length) return []
+    return queue.filter((t) => priorityIds.includes(t.id))
+  }, [queue, priorityIds])
 
   const regularCards = useMemo(() => {
-    return (testimonials || []).filter((t) => !(priorityIds || []).includes(t.id))
-  }, [testimonials, priorityIds])
+    return (queue || []).filter((t) => !(priorityIds || []).includes(t.id))
+  }, [queue, priorityIds])
 
   const rowPools = useMemo(() => {
     const [a, b, c] = distribute(regularCards, 2)
@@ -100,7 +130,16 @@ export default function FloatingDisplay({ themeName = 'wedding', eventSlug = nul
         eventName={displaySettings?.name}
       />
 
-      {loading && !testimonials?.length && (
+      <NewItemOverlay
+        queue={newItems}
+        currentIndex={Math.max(0, newItemIndex - 1) % Math.max(newItems.length, 1)}
+        animationVariant={newItemAnim}
+        duration={newItemDur}
+        themeName={themeName}
+        onComplete={handleNewItemComplete}
+      />
+
+      {loading && !queue?.length && (
         <div className="absolute inset-0 flex items-center justify-center z-20" style={{ gap: 24 }}>
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} width="176px" height="210px" rounded="xl" />

@@ -13,6 +13,7 @@ class Event extends Model
         'display_name', 'display_logo',
         'background_type', 'background_value',
         'animation_movement', 'animation_in', 'animation_out',
+        'new_item_animation', 'new_item_duration', 'poll_interval',
     ];
 
     protected $appends = ['qr_content_url', 'display_logo_url'];

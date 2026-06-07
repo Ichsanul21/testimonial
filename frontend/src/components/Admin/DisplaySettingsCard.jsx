@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../../services/api'
-import { MOVEMENT_VARIANTS, CARD_IN_VARIANTS, CARD_OUT_VARIANTS } from '../FloatingDisplay/animationConfig'
+import { MOVEMENT_VARIANTS, CARD_IN_VARIANTS, CARD_OUT_VARIANTS, NEW_ITEM_VARIANTS } from '../FloatingDisplay/animationConfig'
+import { IconPalette, IconDroplet, IconGradient, IconImage, getIcon } from '../ui/Icons'
 
 export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = '/admin', showEventSelector = false }) {
   const [eventId, setEventId] = useState(propEventId || '')
@@ -18,6 +19,9 @@ export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = 
     animation_movement: 'scroll-left',
     animation_in: 'fade',
     animation_out: 'fade',
+    new_item_animation: 'pop-up',
+    new_item_duration: 4,
+    poll_interval: 'realtime',
   })
 
   useEffect(() => {
@@ -45,6 +49,9 @@ export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = 
         animation_movement: data.animation_movement || 'scroll-left',
         animation_in: data.animation_in || 'fade',
         animation_out: data.animation_out || 'fade',
+        new_item_animation: data.new_item_animation || 'pop-up',
+        new_item_duration: data.new_item_duration ?? 4,
+        poll_interval: data.poll_interval || 'realtime',
       })
       setLogoPreview(data.display_logo_url || null)
     } catch (e) {
@@ -107,7 +114,7 @@ export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = 
             >
               <option value="">-- Pilih acara --</option>
               {events.map((ev) => (
-                <option key={ev.id} value={ev.id}>{ev.icon} {ev.name}</option>
+                <option key={ev.id} value={ev.id}>{ev.name}</option>
               ))}
             </select>
           </div>
@@ -194,10 +201,10 @@ function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, savi
 
         <div className="grid grid-cols-4 gap-2 mb-4">
           {[
-            { id: 'theme', label: 'Tema', icon: '🎨' },
-            { id: 'color', label: 'Warna', icon: '🟣' },
-            { id: 'gradient', label: 'Gradien', icon: '🌈' },
-            { id: 'image', label: 'Gambar', icon: '🖼️' },
+            { id: 'theme', label: 'Tema', Icon: IconPalette },
+            { id: 'color', label: 'Warna', Icon: IconDroplet },
+            { id: 'gradient', label: 'Gradien', Icon: IconGradient },
+            { id: 'image', label: 'Gambar', Icon: IconImage },
           ].map((opt) => (
             <button
               key={opt.id}
@@ -208,7 +215,7 @@ function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, savi
                   : 'bg-slate-50 text-slate-600 border-2 border-transparent hover:bg-slate-100'
               }`}
             >
-              <div className="text-lg mb-1">{opt.icon}</div>
+              <div className="mb-1 flex justify-center"><opt.Icon className="w-5 h-5 mx-auto" /></div>
               {opt.label}
             </button>
           ))}
@@ -272,7 +279,7 @@ function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, savi
                     : 'bg-slate-50 text-slate-600 border-2 border-transparent hover:bg-slate-100'
                 }`}
               >
-                <div className="text-lg mb-1">{val.icon}</div>
+                <div className="mb-1 flex justify-center">{getIcon(val.icon, { className: 'w-5 h-5 mx-auto' })}</div>
                 <div>{val.description}</div>
               </button>
             ))}
@@ -316,6 +323,71 @@ function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, savi
                 </button>
               ))}
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6 border border-slate-100">
+        <h3 className="font-semibold text-slate-800 mb-4">Testimonial Baru</h3>
+
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Animasi Testimonial Baru Masuk</label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {Object.entries(NEW_ITEM_VARIANTS).map(([key, val]) => (
+              <button
+                key={key}
+                onClick={() => update('new_item_animation', key)}
+                className={`p-3 rounded-xl text-center text-sm font-medium transition ${
+                  form.new_item_animation === key
+                    ? 'bg-teal-50 text-teal-700 border-2 border-teal-300'
+                    : 'bg-slate-50 text-slate-600 border-2 border-transparent hover:bg-slate-100'
+                }`}
+              >
+                {val.description}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Durasi Tampil: <span className="text-teal-600 font-bold">{form.new_item_duration}</span> detik
+          </label>
+          <input
+            type="range"
+            min="2"
+            max="8"
+            step="1"
+            value={form.new_item_duration}
+            onChange={(e) => update('new_item_duration', parseInt(e.target.value))}
+            className="w-full accent-teal-500"
+          />
+          <div className="flex justify-between text-xs text-slate-400 mt-1">
+            <span>2 detik</span>
+            <span>8 detik</span>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Mode Pemutakhiran</label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: 'realtime', label: 'Realtime (SSE)', desc: 'Testimonial muncul instan' },
+              { id: 'normal', label: 'Normal (Polling)', desc: 'Update tiap 15 detik' },
+            ].map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => update('poll_interval', opt.id)}
+                className={`p-3 rounded-xl text-center text-sm font-medium transition ${
+                  form.poll_interval === opt.id
+                    ? 'bg-teal-50 text-teal-700 border-2 border-teal-300'
+                    : 'bg-slate-50 text-slate-600 border-2 border-transparent hover:bg-slate-100'
+                }`}
+              >
+                <div className="font-semibold">{opt.label}</div>
+                <div className="text-xs text-slate-400 mt-0.5">{opt.desc}</div>
+              </button>
+            ))}
           </div>
         </div>
       </div>

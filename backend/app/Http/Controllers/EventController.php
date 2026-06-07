@@ -52,6 +52,9 @@ class EventController extends Controller
             'animation_out' => $event->animation_out,
             'icon' => $event->icon,
             'name' => $event->name,
+            'new_item_animation' => $event->new_item_animation,
+            'new_item_duration' => (int) $event->new_item_duration,
+            'poll_interval' => $event->poll_interval,
         ]);
     }
 
@@ -77,5 +80,60 @@ class EventController extends Controller
         }
 
         return response()->json($query->latest()->paginate(20));
+    }
+
+    public function streamTestimonials(string $slug)
+    {
+        $event = Event::where('slug', $slug)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        set_time_limit(0);
+        ini_set('output_buffering', 'off');
+        ini_set('zlib.output_compression', false);
+
+        while (ob_get_level() > 0) {
+            ob_end_flush();
+        }
+
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache');
+        header('Connection: keep-alive');
+        header('X-Accel-Buffering: no');
+
+        $lastId = (int) ($_SERVER['HTTP_LAST_EVENT_ID'] ?? request('lastId', 0));
+
+        while (true) {
+            if (connection_aborted()) {
+                break;
+            }
+
+            $new = Testimonial::where('event_id', $event->id)
+                ->where('is_active', true)
+                ->where('id', '>', $lastId)
+                ->orderBy('id')
+                ->get();
+
+            if ($new->isNotEmpty()) {
+                $lastId = $new->last()->id;
+                echo "id: {$lastId}\n";
+                echo "event: new-testimonials\n";
+                echo 'data: ' . json_encode([
+                    'testimonials' => $new,
+                    'priority_ids' => Testimonial::where('event_id', $event->id)
+                        ->where('is_active', true)
+                        ->where('is_priority', true)
+                        ->pluck('id'),
+                ]) . "\n\n";
+                ob_flush();
+                flush();
+            } else {
+                echo ": keepalive\n\n";
+                ob_flush();
+                flush();
+            }
+
+            sleep(1);
+        }
     }
 }

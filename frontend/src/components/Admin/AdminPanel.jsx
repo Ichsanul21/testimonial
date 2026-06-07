@@ -11,29 +11,40 @@ import EventDetailManager from './EventDetailManager'
 import UsersManager from './UsersManager'
 import SubmittersManager from './SubmittersManager'
 import DisplaySettingsCard from './DisplaySettingsCard'
+import { IconChat, IconClipboard as IconClip, IconCalendar as IconCal, IconGear, IconMonitor, IconPhone, IconUsers } from '../ui/Icons'
+
+const NAV_ITEM_ICONS = {
+  testimonials: IconChat,
+  submitters: IconClip,
+  events: IconCal,
+  settings: IconGear,
+  'display-settings': IconMonitor,
+  qrcode: IconPhone,
+  users: IconUsers,
+}
 
 const NAV_ITEMS = {
   super_admin: [
     {
       label: 'Konten',
       items: [
-        { id: 'testimonials', label: 'Testimonial', icon: '💬' },
-        { id: 'submitters', label: 'Data Pemberi', icon: '📋' },
-        { id: 'events', label: 'Acara', icon: '📅' },
+        { id: 'testimonials', label: 'Testimonial' },
+        { id: 'submitters', label: 'Data Pemberi' },
+        { id: 'events', label: 'Acara' },
       ],
     },
     {
       label: 'Pengaturan',
       items: [
-        { id: 'settings', label: 'Pengaturan', icon: '⚙️' },
-        { id: 'display-settings', label: 'Tampilan Display', icon: '🖥️' },
-        { id: 'qrcode', label: 'QR Code', icon: '📱' },
+        { id: 'settings', label: 'Pengaturan' },
+        { id: 'display-settings', label: 'Tampilan Display' },
+        { id: 'qrcode', label: 'QR Code' },
       ],
     },
     {
       label: 'Akses',
       items: [
-        { id: 'users', label: 'Pengguna', icon: '👥' },
+        { id: 'users', label: 'Pengguna' },
       ],
     },
   ],
@@ -41,7 +52,7 @@ const NAV_ITEMS = {
     {
       label: 'Konten',
       items: [
-        { id: 'events', label: 'Acara Saya', icon: '📅' },
+        { id: 'events', label: 'Acara Saya' },
       ],
     },
   ],
@@ -116,7 +127,10 @@ export default function AdminPanel() {
                       : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
-                  <span className="text-base leading-none">{tab.icon}</span>
+                  {(() => {
+                    const IconComp = NAV_ITEM_ICONS[tab.id]
+                    return IconComp ? <IconComp className="w-5 h-5" /> : null
+                  })()}
                   {tab.label}
                 </button>
               ))}
