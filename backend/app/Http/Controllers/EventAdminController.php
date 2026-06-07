@@ -191,4 +191,68 @@ class EventAdminController extends Controller
             'is_priority' => $request->is_priority,
         ]);
     }
+
+    public function getDisplaySettings(Request $request, int $id)
+    {
+        $event = $request->user()->events()->findOrFail($id);
+        return response()->json([
+            'display_name' => $event->display_name,
+            'display_logo_url' => $event->display_logo_url,
+            'background_type' => $event->background_type,
+            'background_value' => $event->background_value,
+            'animation_movement' => $event->animation_movement,
+            'animation_in' => $event->animation_in,
+            'animation_out' => $event->animation_out,
+        ]);
+    }
+
+    public function updateDisplaySettings(Request $request, int $id)
+    {
+        $event = $request->user()->events()->findOrFail($id);
+
+        $validated = $request->validate([
+            'display_name' => 'nullable|string|max:255',
+            'background_type' => 'required|string|in:theme,color,gradient,image',
+            'background_value' => 'nullable|string|max:2000',
+            'animation_movement' => 'required|string|in:scroll-left,scroll-right,alternating,float,carousel',
+            'animation_in' => 'required|string|in:fade,scale,slide',
+            'animation_out' => 'required|string|in:fade,scale,slide',
+        ]);
+
+        $event->update($validated);
+
+        return response()->json([
+            'message' => 'Display settings berhasil disimpan',
+            'data' => [
+                'display_name' => $event->fresh()->display_name,
+                'display_logo_url' => $event->fresh()->display_logo_url,
+                'background_type' => $event->fresh()->background_type,
+                'background_value' => $event->fresh()->background_value,
+                'animation_movement' => $event->fresh()->animation_movement,
+                'animation_in' => $event->fresh()->animation_in,
+                'animation_out' => $event->fresh()->animation_out,
+            ],
+        ]);
+    }
+
+    public function uploadLogo(Request $request, int $id)
+    {
+        $event = $request->user()->events()->findOrFail($id);
+
+        $request->validate([
+            'logo' => 'required|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
+        ]);
+
+        if ($event->display_logo) {
+            Storage::disk('public')->delete($event->display_logo);
+        }
+
+        $path = $request->file('logo')->store('logos', 'public');
+        $event->update(['display_logo' => $path]);
+
+        return response()->json([
+            'message' => 'Logo berhasil diupload',
+            'display_logo_url' => $event->fresh()->display_logo_url,
+        ]);
+    }
 }

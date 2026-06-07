@@ -36,6 +36,25 @@ class EventController extends Controller
         ]);
     }
 
+    public function displaySettings(string $slug)
+    {
+        $event = Event::where('slug', $slug)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        return response()->json([
+            'display_name' => $event->display_name,
+            'display_logo_url' => $event->display_logo_url,
+            'background_type' => $event->background_type,
+            'background_value' => $event->background_value,
+            'animation_movement' => $event->animation_movement,
+            'animation_in' => $event->animation_in,
+            'animation_out' => $event->animation_out,
+            'icon' => $event->icon,
+            'name' => $event->name,
+        ]);
+    }
+
     public function testimonials(string $slug)
     {
         $event = Event::where('slug', $slug)

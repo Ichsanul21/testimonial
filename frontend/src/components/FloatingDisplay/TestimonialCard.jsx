@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { getTheme } from '../../themes/themeConfig'
+import { CARD_IN_VARIANTS, CARD_OUT_VARIANTS } from './animationConfig'
 
 const relationshipLabels = {
   Teman: 'Teman',
@@ -8,18 +9,26 @@ const relationshipLabels = {
   Lainnya: 'Lainnya',
 }
 
-export default function TestimonialCard({ testimonial, themeName = 'wedding', index = 0 }) {
+export default function TestimonialCard({ testimonial, themeName = 'wedding', index = 0, animIn = 'fade', animOut = 'fade' }) {
   const theme = getTheme(themeName)
+  const inVariant = CARD_IN_VARIANTS[animIn] || CARD_IN_VARIANTS.fade
 
   const floatDur = 3.5 + (index % 3) * 0.4
   const tiltDur = 4.5 + (index % 2) * 0.5
   const floatDelay = (index % 10) * 0.15
 
+  const showFloating = true
+
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4, delay: 0.05 }}
+      variants={{
+        initial: inVariant.initial,
+        animate: inVariant.animate,
+      }}
+      initial="initial"
+      animate="animate"
+      transition={inVariant.transition}
+      exit={animOut !== 'none' ? (CARD_OUT_VARIANTS[animOut]?.exit || {}) : undefined}
       whileHover={{ scale: 1.03, transition: { duration: 0.25 } }}
       style={{
         width: 176,
@@ -61,14 +70,22 @@ export default function TestimonialCard({ testimonial, themeName = 'wedding', in
       <motion.div
         className="absolute inset-0 flex flex-col justify-end"
         style={{ padding: '10px 10px 9px' }}
-        animate={{
-          y: [0, -10, -3, -14, -6, 4, 0],
-          rotate: [0, -0.8, 0.5, -1.2, 0.3, 0.8, 0],
-        }}
-        transition={{
-          y: { duration: floatDur, repeat: Infinity, ease: 'easeInOut', delay: floatDelay },
-          rotate: { duration: tiltDur, repeat: Infinity, ease: 'easeInOut', delay: floatDelay + 0.3 },
-        }}
+        animate={
+          showFloating
+            ? {
+                y: [0, -10, -3, -14, -6, 4, 0],
+                rotate: [0, -0.8, 0.5, -1.2, 0.3, 0.8, 0],
+              }
+            : {}
+        }
+        transition={
+          showFloating
+            ? {
+                y: { duration: floatDur, repeat: Infinity, ease: 'easeInOut', delay: floatDelay },
+                rotate: { duration: tiltDur, repeat: Infinity, ease: 'easeInOut', delay: floatDelay + 0.3 },
+              }
+            : {}
+        }
       >
         <p
           className="text-white w-full"

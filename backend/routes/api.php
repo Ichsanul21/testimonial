@@ -12,6 +12,7 @@ Route::middleware('throttle:30,1')->group(function () {
     Route::get('events', [EventController::class, 'index']);
     Route::get('events/{slug}', [EventController::class, 'show']);
     Route::get('events/{slug}/testimonials', [EventController::class, 'testimonials']);
+    Route::get('events/{slug}/display-settings', [EventController::class, 'displaySettings']);
     Route::get('testimonials', [TestimonialController::class, 'index']);
 });
 
@@ -46,6 +47,10 @@ Route::prefix('admin')->middleware('throttle:60,1')->group(function () {
         Route::post('settings', [AdminController::class, 'updateSettings']);
         Route::post('testimonials/{id}/priority', [AdminController::class, 'setPriority']);
         Route::get('submitters', [AdminController::class, 'submitters']);
+
+        Route::get('events/{id}/display-settings', [AdminController::class, 'getDisplaySettings']);
+        Route::put('events/{id}/display-settings', [AdminController::class, 'updateDisplaySettings']);
+        Route::post('events/{id}/upload-logo', [AdminController::class, 'uploadLogo']);
     });
 });
 
@@ -59,4 +64,7 @@ Route::middleware(['auth:sanctum', 'role:event_admin', 'throttle:60,1'])->prefix
     Route::post('testimonials/{id}/restore', [EventAdminController::class, 'restore']);
     Route::post('testimonials/{id}/priority', [EventAdminController::class, 'setPriority']);
     Route::post('events/{id}/banned-words', [EventAdminController::class, 'updateBannedWords']);
+    Route::get('events/{id}/display-settings', [EventAdminController::class, 'getDisplaySettings']);
+    Route::put('events/{id}/display-settings', [EventAdminController::class, 'updateDisplaySettings']);
+    Route::post('events/{id}/upload-logo', [EventAdminController::class, 'uploadLogo']);
 });

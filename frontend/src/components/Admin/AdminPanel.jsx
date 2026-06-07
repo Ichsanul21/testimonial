@@ -10,6 +10,7 @@ import EventsManager from './EventsManager'
 import EventDetailManager from './EventDetailManager'
 import UsersManager from './UsersManager'
 import SubmittersManager from './SubmittersManager'
+import DisplaySettingsCard from './DisplaySettingsCard'
 
 const NAV_ITEMS = {
   super_admin: [
@@ -25,6 +26,7 @@ const NAV_ITEMS = {
       label: 'Pengaturan',
       items: [
         { id: 'settings', label: 'Pengaturan', icon: '⚙️' },
+        { id: 'display-settings', label: 'Tampilan Display', icon: '🖥️' },
         { id: 'qrcode', label: 'QR Code', icon: '📱' },
       ],
     },
@@ -212,6 +214,14 @@ export default function AdminPanel() {
             <div className="max-w-xl">
               <h2 className="text-lg font-semibold text-slate-800 mb-4">Pengaturan</h2>
               <SettingsCard />
+            </div>
+          )}
+
+          {isSuperAdmin && activeTab === 'display-settings' && (
+            <div className="max-w-2xl">
+              <h2 className="text-lg font-semibold text-slate-800 mb-4">Tampilan Display</h2>
+              <p className="text-sm text-slate-500 mb-4">Atur branding, background, dan animasi display untuk setiap acara.</p>
+              <DisplaySettingsCard eventId={selectedEventId} apiPrefix="/admin" showEventSelector />
             </div>
           )}
 

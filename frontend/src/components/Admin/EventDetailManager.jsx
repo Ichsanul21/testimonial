@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../../services/api'
 import TestimonialTable from './TestimonialTable'
+import DisplaySettingsCard from './DisplaySettingsCard'
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function EventDetailManager({ eventId, onBack }) {
@@ -50,7 +51,7 @@ export default function EventDetailManager({ eventId, onBack }) {
       </div>
 
       <div className="flex gap-2 mb-6">
-        {['info', ...(isSuperAdmin ? ['admins'] : []), 'qr', 'testimonials'].map((t) => (
+        {['info', ...(isSuperAdmin ? ['admins'] : []), 'display', 'qr', 'testimonials'].map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -60,13 +61,18 @@ export default function EventDetailManager({ eventId, onBack }) {
                 : 'text-slate-500 hover:bg-slate-50 border border-transparent'
             }`}
           >
-            {t === 'info' ? 'Info' : t === 'admins' ? 'Admin' : t === 'qr' ? 'QR Code' : 'Testimonial'}
+              {t === 'info' ? 'Info' : t === 'admins' ? 'Admin' : t === 'display' ? 'Display' : t === 'qr' ? 'QR Code' : 'Testimonial'}
           </button>
         ))}
       </div>
 
       {tab === 'info' && <EventInfoPanel event={event} onUpdate={fetchEvent} isEditable={isSuperAdmin} apiPrefix={apiPrefix} />}
       {tab === 'admins' && isSuperAdmin && <EventAdminsPanel eventId={eventId} />}
+      {tab === 'display' && (
+        <div className="max-w-2xl">
+          <DisplaySettingsCard eventId={event.id} apiPrefix={apiPrefix} />
+        </div>
+      )}
       {tab === 'qr' && <EventQRPanel event={event} formUrl={formUrl} displayUrl={displayUrl} onRegenerate={fetchEvent} apiPrefix={apiPrefix} />}
       {tab === 'testimonials' && (
         <div className="bg-white rounded-2xl border border-slate-100 p-4">

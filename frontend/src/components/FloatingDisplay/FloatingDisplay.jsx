@@ -5,7 +5,10 @@ import { getTheme } from '../../themes/themeConfig'
 import TestimonialCard from './TestimonialCard'
 import { WeddingDecorations, CorporateDecorations } from './ThemeDecorations'
 import BackgroundWaves from './BackgroundWaves'
+import DisplayBranding from './DisplayBranding'
+import { MOVEMENT_VARIANTS, getBackgroundStyle } from './animationConfig'
 import Skeleton from '../ui/Skeleton'
+import api from '../../services/api'
 
 const COLS = 5
 const CARD_W = 176
@@ -24,10 +27,32 @@ function distribute(arr, n) {
 }
 
 export default function FloatingDisplay({ themeName = 'wedding', eventSlug = null }) {
-  const { testimonials, priorityIds, loading, error } = useTestimonials({ all: true, eventSlug })
+  const { testimonials, priorityIds, loading } = useTestimonials({ all: true, eventSlug })
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [displaySettings, setDisplaySettings] = useState(null)
+  const [carouselIdx, setCarouselIdx] = useState(0)
   const theme = getTheme(themeName)
   const isWedding = themeName === 'wedding'
+
+  const movement = displaySettings?.animation_movement || 'scroll-left'
+  const animIn = displaySettings?.animation_in || 'fade'
+  const animOut = displaySettings?.animation_out || 'fade'
+  const moveCfg = MOVEMENT_VARIANTS[movement] || MOVEMENT_VARIANTS['scroll-left']
+
+  useEffect(() => {
+    if (!eventSlug) return
+    api.get(`/events/${eventSlug}/display-settings`)
+      .then((res) => setDisplaySettings(res.data))
+      .catch(() => setDisplaySettings(null))
+  }, [eventSlug])
+
+  useEffect(() => {
+    if (movement !== 'carousel') return
+    const timer = setInterval(() => {
+      setCarouselIdx((i) => i + 1)
+    }, 4000)
+    return () => clearInterval(timer)
+  }, [movement])
 
   const priorityCards = useMemo(() => {
     if (!testimonials?.length || !priorityIds?.length) return []
@@ -51,17 +76,29 @@ export default function FloatingDisplay({ themeName = 'wedding', eventSlug = nul
     return () => window.removeEventListener('keydown', handleKey)
   }, [])
 
+  const bgStyle = getBackgroundStyle(displaySettings, themeName)
+
   return (
     <div
       className={`relative overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50' : 'w-full h-full'}`}
       style={{
         minHeight: isFullscreen ? '100vh' : '100%',
-        background: theme.background,
+        ...bgStyle,
         fontFamily: theme.fontBody,
       }}
     >
-      {isWedding ? <WeddingDecorations /> : <CorporateDecorations />}
-      <BackgroundWaves themeName={themeName} />
+      {!displaySettings?.background_type || displaySettings?.background_type === 'theme' ? (
+        <>
+          {isWedding ? <WeddingDecorations /> : <CorporateDecorations />}
+          <BackgroundWaves themeName={themeName} />
+        </>
+      ) : null}
+
+      <DisplayBranding
+        displayName={displaySettings?.display_name}
+        displayLogoUrl={displaySettings?.display_logo_url}
+        eventName={displaySettings?.name}
+      />
 
       {loading && !testimonials?.length && (
         <div className="absolute inset-0 flex items-center justify-center z-20" style={{ gap: 24 }}>
@@ -76,12 +113,59 @@ export default function FloatingDisplay({ themeName = 'wedding', eventSlug = nul
           const pool = rowPools[rowIdx] || []
           const strip = pool.length > 0 ? [...pool, ...pool] : []
 
+          if (movement === 'float') {
+            return (
+              <div key={rowIdx} className="relative flex justify-center" style={{ height: CARD_H, gap: GAP }}>
+                {pool.map((t, i) => (
+                  <div key={t.id} className="flex-shrink-0" style={{ width: CARD_W }}>
+                    <motion.div
+                      animate={moveCfg.animate()}
+                      transition={moveCfg.transition(ROW_SPEEDS[rowIdx], i)}
+                    >
+                      <TestimonialCard testimonial={t} themeName={themeName} index={i} animIn={animIn} animOut={animOut} />
+                    </motion.div>
+                  </div>
+                ))}
+              </div>
+            )
+          }
+
+          if (movement === 'carousel') {
+            const activeIdx = carouselIdx % Math.max(pool.length, 1)
+            return (
+              <div key={rowIdx} className="relative flex justify-center items-center" style={{ height: CARD_H }}>
+                {pool.length > 0 && (
+                  <motion.div
+                    key={`${pool[activeIdx]?.id}-${carouselIdx}`}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.6, ease: 'easeInOut' }}
+                    style={{ width: CARD_W }}
+                  >
+                    <TestimonialCard
+                      testimonial={pool[activeIdx]}
+                      themeName={themeName}
+                      index={0}
+                      animIn={animIn}
+                      animOut={animOut}
+                    />
+                  </motion.div>
+                )}
+              </div>
+            )
+          }
+
+          const scrollDist = movement === 'scroll-right' || (movement === 'alternating' && rowIdx % 2 === 1)
+            ? -SCROLL_DIST
+            : SCROLL_DIST
+
           return (
             <div key={rowIdx} className="relative" style={{ height: CARD_H }}>
               <motion.div
                 className="flex absolute left-0 top-0 h-full items-center"
                 style={{ gap: GAP, width: 'fit-content' }}
-                animate={{ x: [0, -SCROLL_DIST] }}
+                animate={{ x: [0, -scrollDist] }}
                 transition={{
                   duration: ROW_SPEEDS[rowIdx],
                   repeat: Infinity,
@@ -90,7 +174,7 @@ export default function FloatingDisplay({ themeName = 'wedding', eventSlug = nul
               >
                 {strip.map((t, i) => (
                   <div key={`${t.id}-${i}`} className="flex-shrink-0" style={{ width: CARD_W }}>
-                    <TestimonialCard testimonial={t} themeName={themeName} index={i} />
+                    <TestimonialCard testimonial={t} themeName={themeName} index={i} animIn={animIn} animOut={animOut} />
                   </div>
                 ))}
               </motion.div>
