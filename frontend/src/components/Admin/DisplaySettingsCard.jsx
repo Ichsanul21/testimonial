@@ -134,6 +134,8 @@ export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = 
               onLogoUpload={handleLogoUpload}
               saving={saving}
               onSave={handleSave}
+              eventId={eventId}
+              apiPrefix={apiPrefix}
             />
           </>
         )}
@@ -158,11 +160,175 @@ export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = 
       onLogoUpload={handleLogoUpload}
       saving={saving}
       onSave={handleSave}
+      eventId={eventId}
+      apiPrefix={apiPrefix}
     />
   )
 }
 
-function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, saving, onSave }) {
+function GradientBuilder({ value, onChange }) {
+  const [mode, setMode] = useState('visual')
+  const parsed = parseGradient(value)
+  const [c1, setC1] = useState(parsed.color1 || '#0A0A14')
+  const [c2, setC2] = useState(parsed.color2 || '#1A1525')
+  const [angle, setAngle] = useState(parsed.angle ?? 135)
+
+  useEffect(() => {
+    const p = parseGradient(value)
+    if (p.color1) setC1(p.color1)
+    if (p.color2) setC2(p.color2)
+    if (p.angle != null) setAngle(p.angle)
+  }, [value])
+
+  useEffect(() => {
+    if (mode !== 'visual') return
+    const grad = `linear-gradient(${angle}deg, ${c1}, ${c2})`
+    if (grad !== value) onChange(grad)
+  }, [c1, c2, angle, mode])
+
+  return (
+    <div>
+      <div className="flex gap-2 mb-3">
+        <button
+          type="button"
+          onClick={() => setMode('visual')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${mode === 'visual' ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-500'}`}
+        >
+          Visual
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('custom')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${mode === 'custom' ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-500'}`}
+        >
+          Custom CSS
+        </button>
+      </div>
+
+      {mode === 'visual' ? (
+        <div className="space-y-3">
+          <div
+            className="h-16 rounded-xl border border-slate-200"
+            style={{ background: `linear-gradient(${angle}deg, ${c1}, ${c2})` }}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">Warna Awal</label>
+              <div className="flex items-center gap-2">
+                <input type="color" value={c1} onChange={(e) => setC1(e.target.value)} className="w-10 h-10 rounded-lg border border-slate-200 cursor-pointer" />
+                <input value={c1} onChange={(e) => setC1(e.target.value)} className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-teal-500/30" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">Warna Akhir</label>
+              <div className="flex items-center gap-2">
+                <input type="color" value={c2} onChange={(e) => setC2(e.target.value)} className="w-10 h-10 rounded-lg border border-slate-200 cursor-pointer" />
+                <input value={c2} onChange={(e) => setC2(e.target.value)} className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-teal-500/30" />
+              </div>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-slate-500 mb-1">Sudut: {angle}°</label>
+            <input type="range" min="0" max="360" value={angle} onChange={(e) => setAngle(parseInt(e.target.value))} className="w-full accent-teal-500" />
+          </div>
+        </div>
+      ) : (
+        <div>
+          <input
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="linear-gradient(135deg, #0A0A14, #1A1525)"
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 font-mono"
+          />
+          <p className="text-xs text-slate-400 mt-1">Gunakan CSS gradient syntax</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function parseGradient(str) {
+  if (!str) return {}
+  const match = str.match(/linear-gradient\((\d+)deg,\s*(#[^,]+),\s*(#[^)]+)\)/)
+  if (match) {
+    return { angle: parseInt(match[1]), color1: match[2].trim(), color2: match[3].trim() }
+  }
+  return {}
+}
+
+function ImageUpload({ value, onChange, eventId, apiPrefix }) {
+  const [mode, setMode] = useState('url')
+  const [uploading, setUploading] = useState(false)
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !eventId) return
+    setUploading(true)
+    const fd = new FormData()
+    fd.append('background', file)
+    try {
+      const { data } = await api.post(`${apiPrefix}/events/${eventId}/upload-background`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      onChange(data.background_value)
+    } catch (err) {
+      alert('Gagal upload: ' + (err.response?.data?.message || err.message))
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex gap-2 mb-3">
+        <button
+          type="button"
+          onClick={() => setMode('url')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${mode === 'url' ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-500'}`}
+        >
+          URL
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('upload')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${mode === 'upload' ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-500'}`}
+        >
+          Upload
+        </button>
+      </div>
+
+      {value && (
+        <div className="mb-3 rounded-xl overflow-hidden border border-slate-200 h-32 bg-slate-50">
+          <img src={value} alt="Background preview" className="w-full h-full object-cover" />
+        </div>
+      )}
+
+      {mode === 'url' ? (
+        <input
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="https://example.com/background.jpg"
+          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+        />
+      ) : (
+        <label className={`flex items-center justify-center px-4 py-8 rounded-xl border-2 border-dashed border-slate-200 cursor-pointer hover:border-teal-300 transition ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+          <div className="text-center">
+            <svg className="w-8 h-8 mx-auto text-slate-300 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <p className="text-sm text-slate-400">{uploading ? 'Mengupload...' : 'Klik untuk pilih gambar'}</p>
+            <p className="text-xs text-slate-300 mt-1">JPG, PNG, WebP. Maks 2MB</p>
+          </div>
+          <input type="file" accept="image/jpg,image/jpeg,image/png,image/webp" onChange={handleUpload} className="hidden" disabled={uploading} />
+        </label>
+      )}
+    </div>
+  )
+}
+
+function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, saving, onSave, eventId, apiPrefix }) {
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl p-6 border border-slate-100">
@@ -238,29 +404,9 @@ function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, savi
           </div>
         )}
 
-        {form.background_type === 'gradient' && (
-          <div>
-            <input
-              value={form.background_value || ''}
-              onChange={(e) => update('background_value', e.target.value)}
-              placeholder="linear-gradient(135deg, #0A0A14, #1A1525)"
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 font-mono"
-            />
-            <p className="text-xs text-slate-400 mt-1">Gunakan CSS gradient syntax</p>
-          </div>
-        )}
+        {form.background_type === 'gradient' && <GradientBuilder value={form.background_value || ''} onChange={(v) => update('background_value', v)} />}
 
-        {form.background_type === 'image' && (
-          <div>
-            <input
-              value={form.background_value || ''}
-              onChange={(e) => update('background_value', e.target.value)}
-              placeholder="https://example.com/background.jpg"
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30"
-            />
-            <p className="text-xs text-slate-400 mt-1">URL gambar background</p>
-          </div>
-        )}
+        {form.background_type === 'image' && <ImageUpload value={form.background_value || ''} onChange={(v) => update('background_value', v)} eventId={eventId} apiPrefix={apiPrefix} />}
       </div>
 
       <div className="bg-white rounded-2xl p-6 border border-slate-100">

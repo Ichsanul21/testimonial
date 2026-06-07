@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../services/api'
 import heroBg from '../assets/hero.png'
-import { IconSearch, IconClipboard, IconCalendar, IconPin, IconPencil, IconArrowRight } from '../components/ui/Icons'
+import { IconSearch, IconCalendar, IconPin, IconPencil, IconArrowRight } from '../components/ui/Icons'
+import EventIcon from '../components/ui/EventIcon'
 
 export default function EventDetailPage() {
   const { slug } = useParams()
@@ -55,11 +56,7 @@ export default function EventDetailPage() {
       <div className="max-w-2xl mx-auto px-4 py-12 relative">
         <div className="text-center mb-10">
           <div className="mb-4 flex justify-center">
-            {event.icon ? (
-              <span className="text-6xl">{event.icon}</span>
-            ) : (
-              <IconClipboard className="w-16 h-16 text-slate-300" />
-            )}
+            <EventIcon icon={event.icon} name={event.name} size="w-20 h-20" textSize="text-2xl" />
           </div>
           <h1 className="text-3xl font-bold text-slate-800 font-serif mb-2">
             {event.name}

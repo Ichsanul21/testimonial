@@ -249,4 +249,30 @@ class AdminController extends Controller
             'display_logo_url' => $event->fresh()->display_logo_url,
         ]);
     }
+
+    public function uploadBackground(Request $request, int $id)
+    {
+        $event = Event::findOrFail($id);
+
+        $request->validate([
+            'background' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
+
+        if ($event->background_type === 'image' && $event->background_value) {
+            $oldPath = str_replace(url('storage/'), '', $event->background_value);
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $path = $request->file('background')->store('backgrounds', 'public');
+
+        $event->update([
+            'background_type' => 'image',
+            'background_value' => url('storage/' . $path),
+        ]);
+
+        return response()->json([
+            'message' => 'Background berhasil diupload',
+            'background_value' => $event->fresh()->background_value,
+        ]);
+    }
 }

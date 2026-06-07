@@ -3,7 +3,8 @@ import api from '../../services/api'
 import TestimonialTable from './TestimonialTable'
 import DisplaySettingsCard from './DisplaySettingsCard'
 import { useAuth } from '../../contexts/AuthContext'
-import { IconArrowLeft, IconClipboard, IconArrowUpRight } from '../ui/Icons'
+import { IconArrowLeft, IconArrowUpRight } from '../ui/Icons'
+import EventIcon from '../ui/EventIcon'
 
 export default function EventDetailManager({ eventId, onBack }) {
   const { user } = useAuth()
@@ -44,7 +45,7 @@ export default function EventDetailManager({ eventId, onBack }) {
       </button>
 
       <div className="flex items-center gap-3 mb-6">
-        <span className="text-3xl">{event.icon ? <span>{event.icon}</span> : <IconClipboard className="w-8 h-8 text-slate-300" />}</span>
+        <EventIcon icon={event.icon} name={event.name} size="w-12 h-12" textSize="text-base" />
         <div>
           <h2 className="text-xl font-bold text-slate-800">{event.name}</h2>
           <p className="text-sm text-slate-400">/{event.slug}</p>

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../../services/api'
 import { useAuth } from '../../contexts/AuthContext'
-import { IconClipboard, IconCalendar, IconPin } from '../ui/Icons'
+import { EVENT_ICONS, IconClipboard, IconCalendar, IconPin, getIcon } from '../ui/Icons'
+import EventIcon from '../ui/EventIcon'
 
 export default function EventsManager({ onSelect }) {
   const { user } = useAuth()
@@ -81,8 +82,33 @@ export default function EventsManager({ onSelect }) {
                 <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30" />
                 <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Lokasi (opsional)" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <input value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} placeholder="Icon (opsional)" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30" />
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Icon Acara</label>
+                <div className="grid grid-cols-5 gap-2 mb-2">
+                  {EVENT_ICONS.map(({ id, Icon }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setForm({ ...form, icon: id })}
+                      className={`p-2 rounded-xl border-2 transition flex items-center justify-center ${
+                        form.icon === id
+                          ? 'border-teal-400 bg-teal-50 text-teal-600'
+                          : 'border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600'
+                      }`}
+                    >
+                      <Icon className="w-6 h-6" />
+                    </button>
+                  ))}
+                </div>
+                <input
+                  value={form.icon && !EVENT_ICONS.find((e) => e.id === form.icon) ? form.icon : ''}
+                  onChange={(e) => setForm({ ...form, icon: e.target.value })}
+                  placeholder="Atau custom (emoji / teks)"
+                  className="w-full px-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Warna Tema</label>
                 <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="w-full h-[42px] rounded-xl border border-slate-200 cursor-pointer" />
               </div>
               <div className="flex gap-3 pt-2">
@@ -106,7 +132,7 @@ export default function EventsManager({ onSelect }) {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{event.icon ? <span>{event.icon}</span> : <IconClipboard className="w-8 h-8 text-slate-300" />}</span>
+                <EventIcon icon={event.icon} name={event.name} size="w-10 h-10" textSize="text-sm" />
                 <div>
                   <h3 className="font-medium text-slate-800">{event.name}</h3>
                   <p className="text-xs text-slate-400 mt-0.5">

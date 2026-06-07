@@ -53,6 +53,7 @@ Route::prefix('admin')->middleware('throttle:60,1')->group(function () {
         Route::get('events/{id}/display-settings', [AdminController::class, 'getDisplaySettings']);
         Route::put('events/{id}/display-settings', [AdminController::class, 'updateDisplaySettings']);
         Route::post('events/{id}/upload-logo', [AdminController::class, 'uploadLogo']);
+        Route::post('events/{id}/upload-background', [AdminController::class, 'uploadBackground']);
     });
 });
 
@@ -69,4 +70,5 @@ Route::middleware(['auth:sanctum', 'role:event_admin', 'throttle:60,1'])->prefix
     Route::get('events/{id}/display-settings', [EventAdminController::class, 'getDisplaySettings']);
     Route::put('events/{id}/display-settings', [EventAdminController::class, 'updateDisplaySettings']);
     Route::post('events/{id}/upload-logo', [EventAdminController::class, 'uploadLogo']);
+    Route::post('events/{id}/upload-background', [EventAdminController::class, 'uploadBackground']);
 });

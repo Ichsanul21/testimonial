@@ -1,3 +1,5 @@
+import { getTheme } from '../../themes/themeConfig'
+
 export const MOVEMENT_VARIANTS = {
   'scroll-left': {
     animate: (scrollDist) => ({ x: [0, -scrollDist] }),

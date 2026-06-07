@@ -254,6 +254,79 @@ export function IconPlay({ className = 'w-5 h-5', size }) {
   )
 }
 
+export function IconHeart({ className = 'w-5 h-5', size }) {
+  return (
+    <svg className={size || className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+    </svg>
+  )
+}
+
+export function IconStar({ className = 'w-5 h-5', size }) {
+  return (
+    <svg className={size || className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  )
+}
+
+export function IconGift({ className = 'w-5 h-5', size }) {
+  return (
+    <svg className={size || className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 12 20 22 4 22 4 12" />
+      <rect x="2" y="7" width="20" height="5" />
+      <line x1="12" y1="22" x2="12" y2="7" />
+      <path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z" />
+      <path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z" />
+    </svg>
+  )
+}
+
+export function IconCake({ className = 'w-5 h-5', size }) {
+  return (
+    <svg className={size || className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 15c0 2.21 2.24 4 5 4s5-1.79 5-4-2.24-4-5-4-5 1.79-5 4z" />
+      <path d="M12 15c0 2.21 2.24 4 5 4s5-1.79 5-4-2.24-4-5-4-5 1.79-5 4z" />
+      <path d="M7 11V7" />
+      <path d="M17 11V7" />
+      <path d="M12 11V4" />
+      <circle cx="12" cy="3" r="1" />
+    </svg>
+  )
+}
+
+export function IconMusic({ className = 'w-5 h-5', size }) {
+  return (
+    <svg className={size || className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18V5l12-2v13" />
+      <circle cx="6" cy="18" r="3" />
+      <circle cx="18" cy="16" r="3" />
+    </svg>
+  )
+}
+
+export function IconBriefcase({ className = 'w-5 h-5', size }) {
+  return (
+    <svg className={size || className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+      <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+    </svg>
+  )
+}
+
+export function IconTrophy({ className = 'w-5 h-5', size }) {
+  return (
+    <svg className={size || className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 9H4.5a2.5 2.5 0 010-5C7 4 6 9 6 9z" />
+      <path d="M18 9h1.5a2.5 2.5 0 000-5C17 4 18 9 18 9z" />
+      <path d="M4 22h16" />
+      <path d="M10 22V12" />
+      <path d="M14 22V12" />
+      <rect x="8" y="2" width="8" height="10" rx="1" />
+    </svg>
+  )
+}
+
 export function IconMinus({ className = 'w-5 h-5', size }) {
   return (
     <svg className={size || className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -290,7 +363,27 @@ export const ICON_MAP = {
   IconPlus,
   IconPlay,
   IconMinus,
+  IconHeart,
+  IconStar,
+  IconGift,
+  IconCake,
+  IconMusic,
+  IconBriefcase,
+  IconTrophy,
 }
+
+export const EVENT_ICONS = [
+  { id: 'ring', label: 'Ring', Icon: IconRing },
+  { id: 'heart', label: 'Heart', Icon: IconHeart },
+  { id: 'star', label: 'Star', Icon: IconStar },
+  { id: 'gift', label: 'Gift', Icon: IconGift },
+  { id: 'cake', label: 'Cake', Icon: IconCake },
+  { id: 'music', label: 'Music', Icon: IconMusic },
+  { id: 'briefcase', label: 'Briefcase', Icon: IconBriefcase },
+  { id: 'trophy', label: 'Trophy', Icon: IconTrophy },
+  { id: 'party', label: 'Party', Icon: IconParty },
+  { id: 'dove', label: 'Dove', Icon: IconDove },
+]
 
 export function getIcon(name, props = {}) {
   const Icon = ICON_MAP[name]
