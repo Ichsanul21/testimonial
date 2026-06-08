@@ -76,7 +76,12 @@ export default function useEventSourceTestimonials({ eventSlug = null, pollInter
             const trulyNew = incoming.filter(t => !existingIds.has(t.id))
             if (trulyNew.length > 0) {
               if (initialLoadDone.current) {
-                setNewItems(trulyNew)
+                setNewItems(prev => {
+                  const currentIds = new Set(prev.map(t => t.id))
+                  const trulyFresh = trulyNew.filter(t => !currentIds.has(t.id))
+                  if (trulyFresh.length === 0) return prev
+                  return [...prev, ...trulyFresh]
+                })
               }
               return [...prev, ...trulyNew]
             }

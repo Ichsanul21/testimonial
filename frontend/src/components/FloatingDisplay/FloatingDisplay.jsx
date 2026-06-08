@@ -260,9 +260,7 @@ export default function FloatingDisplay({ themeName = 'wedding', eventSlug = nul
           }
 
           const copies = Math.max(3, Math.ceil((COLS + 2) / Math.max(pool.length, 1)))
-          const strip = Array.from({ length: copies }, (_, ci) =>
-            pool.map((_, pi) => pool[(pi + ci) % pool.length])
-          ).flat()
+          const strip = Array.from({ length: copies }, () => pool).flat()
           const scrollDist = strip.length * CARD_UNIT
 
           return (
