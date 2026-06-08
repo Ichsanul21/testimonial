@@ -14,6 +14,12 @@ class Event extends Model
         'background_type', 'background_value',
         'animation_movement', 'animation_in', 'animation_out',
         'new_item_animation', 'new_item_duration', 'poll_interval',
+        'animation_movement_extra', 'animation_in_extra', 'animation_out_extra', 'new_item_animation_extra',
+        'title_font', 'title_size', 'banner_style', 'banner_position',
+        'card_radius', 'card_style', 'card_text_color', 'text_align',
+        'show_photo', 'show_quote', 'scroll_speed',
+        'show_date', 'show_relationship', 'card_gap', 'visible_rows',
+        'pause_on_hover', 'photo_shape', 'card_backdrop_blur', 'card_overlay_opacity',
     ];
 
     protected $appends = ['qr_content_url', 'display_logo_url'];

@@ -10,6 +10,7 @@ export default function useEventSourceTestimonials({ eventSlug = null, pollInter
   const esRef = useRef(null)
   const pollRef = useRef(null)
   const lastIdRef = useRef(0)
+  const retryCountRef = useRef(0)
 
   const fetchAll = useCallback(async () => {
     try {
@@ -48,7 +49,10 @@ export default function useEventSourceTestimonials({ eventSlug = null, pollInter
       esRef.current = es
 
       es.onopen = () => {
-        if (mounted) setIsConnected(true)
+        if (mounted) {
+          setIsConnected(true)
+          retryCountRef.current = 0
+        }
       }
 
       es.addEventListener('new-testimonials', (e) => {
@@ -81,7 +85,9 @@ export default function useEventSourceTestimonials({ eventSlug = null, pollInter
         if (!mounted) return
         setIsConnected(false)
         es.close()
-        reconnectTimer = setTimeout(connect, 3000)
+        retryCountRef.current += 1
+        const delay = Math.min(1000 * Math.pow(3, retryCountRef.current - 1), 60000)
+        reconnectTimer = setTimeout(connect, delay)
       }
     }
 

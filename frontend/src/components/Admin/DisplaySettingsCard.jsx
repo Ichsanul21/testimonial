@@ -1,7 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../../services/api'
-import { MOVEMENT_VARIANTS, CARD_IN_VARIANTS, CARD_OUT_VARIANTS, NEW_ITEM_VARIANTS } from '../FloatingDisplay/animationConfig'
+import {
+  MOVEMENT_VARIANTS, CARD_IN_VARIANTS, CARD_OUT_VARIANTS, NEW_ITEM_VARIANTS,
+  FONT_MAP, TITLE_SIZE_MAP, BANNER_STYLE_MAP,
+  CARD_RADIUS_MAP, CARD_STYLE_MAP, SCROLL_SPEED_MAP,
+  CARD_GAP_MAP, PHOTO_SHAPE_MAP, BACKDROP_BLUR_MAP,
+} from '../FloatingDisplay/animationConfig'
 import { IconPalette, IconDroplet, IconGradient, IconImage, getIcon } from '../ui/Icons'
+
+const EXTRA_MOVEMENTS = ['bounce', 'waterfall', 'v-scroll', 'random', 'wave']
+const EXTRA_IN_OUT = ['zoom', 'flip', 'rotate', 'blur']
+const EXTRA_NEW_ITEM = ['typewriter', 'spin', 'expand']
 
 export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = '/admin', showEventSelector = false }) {
   const [eventId, setEventId] = useState(propEventId || '')
@@ -11,6 +20,7 @@ export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = 
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [logoPreview, setLogoPreview] = useState(null)
+  const [fetchError, setFetchError] = useState(null)
 
   const [form, setForm] = useState({
     display_name: '',
@@ -22,6 +32,29 @@ export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = 
     new_item_animation: 'pop-up',
     new_item_duration: 4,
     poll_interval: 'realtime',
+    animation_movement_extra: null,
+    animation_in_extra: null,
+    animation_out_extra: null,
+    new_item_animation_extra: null,
+    title_font: 'playfair',
+    title_size: 'lg',
+    banner_style: 'glass',
+    banner_position: 'top',
+    card_radius: 'md',
+    card_style: 'glass',
+    card_text_color: 'light',
+    text_align: 'left',
+    show_photo: true,
+    show_quote: false,
+    scroll_speed: 'normal',
+    show_date: true,
+    show_relationship: true,
+    card_gap: 'md',
+    visible_rows: 3,
+    pause_on_hover: false,
+    photo_shape: 'rounded',
+    card_backdrop_blur: 'md',
+    card_overlay_opacity: 88,
   })
 
   useEffect(() => {
@@ -52,10 +85,34 @@ export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = 
         new_item_animation: data.new_item_animation || 'pop-up',
         new_item_duration: data.new_item_duration ?? 4,
         poll_interval: data.poll_interval || 'realtime',
+        animation_movement_extra: data.animation_movement_extra || null,
+        animation_in_extra: data.animation_in_extra || null,
+        animation_out_extra: data.animation_out_extra || null,
+        new_item_animation_extra: data.new_item_animation_extra || null,
+        title_font: data.title_font || 'playfair',
+        title_size: data.title_size || 'lg',
+        banner_style: data.banner_style || 'glass',
+        banner_position: data.banner_position || 'top',
+        card_radius: data.card_radius || 'md',
+        card_style: data.card_style || 'glass',
+        card_text_color: data.card_text_color || 'light',
+        text_align: data.text_align || 'left',
+        show_photo: data.show_photo ?? true,
+        show_quote: data.show_quote ?? false,
+        scroll_speed: data.scroll_speed || 'normal',
+        show_date: data.show_date ?? true,
+        show_relationship: data.show_relationship ?? true,
+        card_gap: data.card_gap || 'md',
+        visible_rows: data.visible_rows ?? 3,
+        pause_on_hover: data.pause_on_hover ?? false,
+        photo_shape: data.photo_shape || 'rounded',
+        card_backdrop_blur: data.card_backdrop_blur || 'md',
+        card_overlay_opacity: data.card_overlay_opacity ?? 88,
       })
       setLogoPreview(data.display_logo_url || null)
+      setFetchError(null)
     } catch (e) {
-      console.error(e)
+      setFetchError(e.response?.data?.message || e.message || 'Gagal memuat pengaturan display')
     } finally {
       setLoading(false)
     }
@@ -67,7 +124,12 @@ export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = 
     if (!eventId) return
     setSaving(true)
     try {
-      await api.put(`${apiPrefix}/events/${eventId}/display-settings`, form)
+      const boolFields = ['show_photo', 'show_quote', 'show_date', 'show_relationship', 'pause_on_hover']
+      const payload = { ...form }
+      for (const field of boolFields) {
+        payload[field] = payload[field] ? '1' : '0'
+      }
+      await api.put(`${apiPrefix}/events/${eventId}/display-settings`, payload)
       alert('Display settings berhasil disimpan')
     } catch (e) {
       alert('Gagal menyimpan: ' + (e.response?.data?.message || e.message))
@@ -99,6 +161,27 @@ export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = 
 
   const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }))
 
+  const effectiveMovement = form.animation_movement_extra && EXTRA_MOVEMENTS.includes(form.animation_movement_extra)
+    ? form.animation_movement_extra
+    : form.animation_movement
+
+  const effectiveIn = form.animation_in_extra && EXTRA_IN_OUT.includes(form.animation_in_extra)
+    ? form.animation_in_extra
+    : form.animation_in
+
+  const effectiveOut = form.animation_out_extra && EXTRA_IN_OUT.includes(form.animation_out_extra)
+    ? form.animation_out_extra
+    : form.animation_out
+
+  const effectiveNewItem = form.new_item_animation_extra && EXTRA_NEW_ITEM.includes(form.new_item_animation_extra)
+    ? form.new_item_animation_extra
+    : form.new_item_animation
+
+  const allMovements = [
+    ...Object.entries(MOVEMENT_VARIANTS).filter(([k]) => !EXTRA_MOVEMENTS.includes(k)),
+    ...Object.entries(MOVEMENT_VARIANTS).filter(([k]) => EXTRA_MOVEMENTS.includes(k)),
+  ]
+
   if (showEventSelector) {
     return (
       <div className="space-y-6">
@@ -124,20 +207,36 @@ export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = 
           <div className="animate-pulse h-64 bg-slate-100 rounded-xl" />
         )}
 
-        {eventId && !loading && (
-          <>
-            <SettingsForm
-              form={form}
-              update={update}
-              logoPreview={logoPreview}
-              uploading={uploading}
-              onLogoUpload={handleLogoUpload}
-              saving={saving}
-              onSave={handleSave}
-              eventId={eventId}
-              apiPrefix={apiPrefix}
-            />
-          </>
+        {eventId && !loading && fetchError && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+            <p className="text-red-600 font-medium mb-2">Gagal memuat pengaturan</p>
+            <p className="text-red-500 text-sm">{fetchError}</p>
+            <button
+              onClick={fetchSettings}
+              className="mt-4 px-4 py-2 rounded-xl text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 transition"
+            >
+              Coba Lagi
+            </button>
+          </div>
+        )}
+
+        {eventId && !loading && !fetchError && (
+          <SettingsForm
+            form={form}
+            update={update}
+            logoPreview={logoPreview}
+            uploading={uploading}
+            onLogoUpload={handleLogoUpload}
+            saving={saving}
+            onSave={handleSave}
+            eventId={eventId}
+            apiPrefix={apiPrefix}
+            allMovements={allMovements}
+            effectiveMovement={effectiveMovement}
+            effectiveIn={effectiveIn}
+            effectiveOut={effectiveOut}
+            effectiveNewItem={effectiveNewItem}
+          />
         )}
       </div>
     )
@@ -151,6 +250,21 @@ export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = 
     return <div className="animate-pulse h-64 bg-slate-100 rounded-xl" />
   }
 
+  if (fetchError) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+        <p className="text-red-600 font-medium mb-2">Gagal memuat pengaturan</p>
+        <p className="text-red-500 text-sm">{fetchError}</p>
+        <button
+          onClick={fetchSettings}
+          className="mt-4 px-4 py-2 rounded-xl text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 transition"
+        >
+          Coba Lagi
+        </button>
+      </div>
+    )
+  }
+
   return (
     <SettingsForm
       form={form}
@@ -162,6 +276,11 @@ export default function DisplaySettingsCard({ eventId: propEventId, apiPrefix = 
       onSave={handleSave}
       eventId={eventId}
       apiPrefix={apiPrefix}
+      allMovements={allMovements}
+      effectiveMovement={effectiveMovement}
+      effectiveIn={effectiveIn}
+      effectiveOut={effectiveOut}
+      effectiveNewItem={effectiveNewItem}
     />
   )
 }
@@ -328,7 +447,75 @@ function ImageUpload({ value, onChange, eventId, apiPrefix }) {
   )
 }
 
-function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, saving, onSave, eventId, apiPrefix }) {
+function SettingsForm({
+  form, update, logoPreview, uploading, onLogoUpload, saving, onSave,
+  eventId, apiPrefix, allMovements, effectiveMovement, effectiveIn, effectiveOut, effectiveNewItem,
+}) {
+  const OptionBtn = ({ active, onClick, children }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`p-3 rounded-xl text-center text-sm font-medium transition ${
+        active
+          ? 'bg-teal-50 text-teal-700 border-2 border-teal-300'
+          : 'bg-slate-50 text-slate-600 border-2 border-transparent hover:bg-slate-100'
+      }`}
+    >
+      {children}
+    </button>
+  )
+
+  const toggle = (key) => {
+    if (key === 'animation_movement') {
+      update('animation_movement_extra', null)
+    }
+    if (key === 'animation_in') {
+      update('animation_in_extra', null)
+    }
+    if (key === 'animation_out') {
+      update('animation_out_extra', null)
+    }
+    if (key === 'new_item_animation') {
+      update('new_item_animation_extra', null)
+    }
+  }
+
+  const selectMovement = (key) => {
+    if (EXTRA_MOVEMENTS.includes(key)) {
+      update('animation_movement_extra', key)
+    } else {
+      update('animation_movement', key)
+      update('animation_movement_extra', null)
+    }
+  }
+
+  const selectIn = (key) => {
+    if (EXTRA_IN_OUT.includes(key)) {
+      update('animation_in_extra', key)
+    } else {
+      update('animation_in', key)
+      update('animation_in_extra', null)
+    }
+  }
+
+  const selectOut = (key) => {
+    if (EXTRA_IN_OUT.includes(key)) {
+      update('animation_out_extra', key)
+    } else {
+      update('animation_out', key)
+      update('animation_out_extra', null)
+    }
+  }
+
+  const selectNewItem = (key) => {
+    if (EXTRA_NEW_ITEM.includes(key)) {
+      update('new_item_animation_extra', key)
+    } else {
+      update('new_item_animation', key)
+      update('new_item_animation_extra', null)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl p-6 border border-slate-100">
@@ -360,6 +547,241 @@ function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, savi
             </label>
           </div>
         </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6 border border-slate-100">
+        <h3 className="font-semibold text-slate-800 mb-4">Font &amp; Banner</h3>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Font Judul</label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {Object.entries(FONT_MAP).map(([key, val]) => (
+              <OptionBtn key={key} active={form.title_font === key} onClick={() => update('title_font', key)}>
+                <span style={{ fontFamily: val.family }} className="text-sm">{val.label}</span>
+              </OptionBtn>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Ukuran Judul</label>
+          <div className="grid grid-cols-4 gap-2">
+            {Object.entries(TITLE_SIZE_MAP).map(([key, val]) => (
+              <OptionBtn key={key} active={form.title_size === key} onClick={() => update('title_size', key)}>
+                <div className="text-sm">{val.label}</div>
+                <div className="text-xs text-slate-400">{val.fontSize}px</div>
+              </OptionBtn>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Style Banner</label>
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(BANNER_STYLE_MAP).map(([key, val]) => (
+              <OptionBtn key={key} active={form.banner_style === key} onClick={() => update('banner_style', key)}>
+                {val.label}
+              </OptionBtn>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Posisi Banner</label>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { id: 'top', label: 'Atas' },
+              { id: 'top-center', label: 'Tengah Atas' },
+              { id: 'center', label: 'Tengah' },
+            ].map((opt) => (
+              <OptionBtn key={opt.id} active={form.banner_position === opt.id} onClick={() => update('banner_position', opt.id)}>
+                {opt.label}
+              </OptionBtn>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6 border border-slate-100">
+        <h3 className="font-semibold text-slate-800 mb-4">Tampilan Kartu</h3>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Bentuk Kartu</label>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            {Object.entries(CARD_RADIUS_MAP).map(([key, val]) => (
+              <OptionBtn key={key} active={form.card_radius === key} onClick={() => update('card_radius', key)}>
+                <div className={`mx-auto w-8 h-8 bg-slate-200 mb-1`} style={{ borderRadius: val.value === 999 ? 9999 : val.value }} />
+                <div className="text-xs">{val.label}</div>
+              </OptionBtn>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Style Kartu</label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {Object.entries(CARD_STYLE_MAP).map(([key, val]) => (
+              <OptionBtn key={key} active={form.card_style === key} onClick={() => update('card_style', key)}>
+                {val.label}
+              </OptionBtn>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Warna Teks</label>
+          <div className="grid grid-cols-2 gap-2">
+            <OptionBtn active={form.card_text_color === 'light'} onClick={() => update('card_text_color', 'light')}>
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-white border border-slate-300" />
+                <span>Terang</span>
+              </div>
+            </OptionBtn>
+            <OptionBtn active={form.card_text_color === 'dark'} onClick={() => update('card_text_color', 'dark')}>
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-slate-800 border border-slate-300" />
+                <span>Gelap</span>
+              </div>
+            </OptionBtn>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Rata Teks</label>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { id: 'left', label: 'Kiri' },
+              { id: 'center', label: 'Tengah' },
+              { id: 'right', label: 'Kanan' },
+            ].map((opt) => (
+              <OptionBtn key={opt.id} active={form.text_align === opt.id} onClick={() => update('text_align', opt.id)}>
+                {opt.label}
+              </OptionBtn>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 cursor-pointer">
+            <span className="text-sm font-medium text-slate-700">Tampilkan Foto</span>
+            <input
+              type="checkbox"
+              checked={form.show_photo}
+              onChange={(e) => update('show_photo', e.target.checked)}
+              className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+            />
+          </label>
+          <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 cursor-pointer">
+            <span className="text-sm font-medium text-slate-700">Tampilkan Tanda Kutip</span>
+            <input
+              type="checkbox"
+              checked={form.show_quote}
+              onChange={(e) => update('show_quote', e.target.checked)}
+              className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+            />
+          </label>
+          <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 cursor-pointer">
+            <span className="text-sm font-medium text-slate-700">Tampilkan Tanggal</span>
+            <input
+              type="checkbox"
+              checked={form.show_date}
+              onChange={(e) => update('show_date', e.target.checked)}
+              className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+            />
+          </label>
+          <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 cursor-pointer">
+            <span className="text-sm font-medium text-slate-700">Tampilkan Relasi</span>
+            <input
+              type="checkbox"
+              checked={form.show_relationship}
+              onChange={(e) => update('show_relationship', e.target.checked)}
+              className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+            />
+          </label>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6 border border-slate-100">
+        <h3 className="font-semibold text-slate-800 mb-4">Tampilan Lanjutan</h3>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Jarak Antar Kartu</label>
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(CARD_GAP_MAP).map(([key, val]) => (
+              <OptionBtn key={key} active={form.card_gap === key} onClick={() => update('card_gap', key)}>
+                {val.label} ({val.value}px)
+              </OptionBtn>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Jumlah Baris Tampil: <span className="text-teal-600 font-bold">{form.visible_rows}</span></label>
+          <input
+            type="range"
+            min="2"
+            max="5"
+            step="1"
+            value={form.visible_rows}
+            onChange={(e) => update('visible_rows', parseInt(e.target.value))}
+            className="w-full accent-teal-500"
+          />
+          <div className="flex justify-between text-xs text-slate-400 mt-1">
+            <span>2 baris</span>
+            <span>5 baris</span>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Bentuk Foto</label>
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(PHOTO_SHAPE_MAP).map(([key, val]) => (
+              <OptionBtn key={key} active={form.photo_shape === key} onClick={() => update('photo_shape', key)}>
+                {val.label}
+              </OptionBtn>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Efek Blur Kartu</label>
+          <div className="grid grid-cols-4 gap-2">
+            {Object.entries(BACKDROP_BLUR_MAP).map(([key, val]) => (
+              <OptionBtn key={key} active={form.card_backdrop_blur === key} onClick={() => update('card_backdrop_blur', key)}>
+                {val.label}
+              </OptionBtn>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Opacity Overlay: <span className="text-teal-600 font-bold">{form.card_overlay_opacity}%</span>
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="5"
+            value={form.card_overlay_opacity}
+            onChange={(e) => update('card_overlay_opacity', parseInt(e.target.value))}
+            className="w-full accent-teal-500"
+          />
+          <div className="flex justify-between text-xs text-slate-400 mt-1">
+            <span>Transparan</span>
+            <span>Solid</span>
+          </div>
+        </div>
+
+        <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 cursor-pointer">
+          <span className="text-sm font-medium text-slate-700">Jeda Scroll saat Hover</span>
+          <input
+            type="checkbox"
+            checked={form.pause_on_hover}
+            onChange={(e) => update('pause_on_hover', e.target.checked)}
+            className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+          />
+        </label>
       </div>
 
       <div className="bg-white rounded-2xl p-6 border border-slate-100">
@@ -415,12 +837,13 @@ function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, savi
         <div className="mb-5">
           <label className="block text-sm font-medium text-slate-700 mb-2">Gerakan Ucapan</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {Object.entries(MOVEMENT_VARIANTS).map(([key, val]) => (
+            {allMovements.map(([key, val]) => (
               <button
                 key={key}
-                onClick={() => update('animation_movement', key)}
+                type="button"
+                onClick={() => selectMovement(key)}
                 className={`p-3 rounded-xl text-center text-sm font-medium transition ${
-                  form.animation_movement === key
+                  effectiveMovement === key
                     ? 'bg-teal-50 text-teal-700 border-2 border-teal-300'
                     : 'bg-slate-50 text-slate-600 border-2 border-transparent hover:bg-slate-100'
                 }`}
@@ -432,16 +855,17 @@ function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, savi
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Animasi Masuk</label>
             <div className="space-y-1">
               {Object.entries(CARD_IN_VARIANTS).map(([key, val]) => (
                 <button
                   key={key}
-                  onClick={() => update('animation_in', key)}
+                  type="button"
+                  onClick={() => selectIn(key)}
                   className={`w-full p-2.5 rounded-xl text-sm font-medium text-left transition ${
-                    form.animation_in === key
+                    effectiveIn === key
                       ? 'bg-teal-50 text-teal-700 border-2 border-teal-300'
                       : 'bg-slate-50 text-slate-600 border-2 border-transparent hover:bg-slate-100'
                   }`}
@@ -458,9 +882,10 @@ function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, savi
               {Object.entries(CARD_OUT_VARIANTS).map(([key, val]) => (
                 <button
                   key={key}
-                  onClick={() => update('animation_out', key)}
+                  type="button"
+                  onClick={() => selectOut(key)}
                   className={`w-full p-2.5 rounded-xl text-sm font-medium text-left transition ${
-                    form.animation_out === key
+                    effectiveOut === key
                       ? 'bg-teal-50 text-teal-700 border-2 border-teal-300'
                       : 'bg-slate-50 text-slate-600 border-2 border-transparent hover:bg-slate-100'
                   }`}
@@ -482,9 +907,10 @@ function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, savi
             {Object.entries(NEW_ITEM_VARIANTS).map(([key, val]) => (
               <button
                 key={key}
-                onClick={() => update('new_item_animation', key)}
+                type="button"
+                onClick={() => selectNewItem(key)}
                 className={`p-3 rounded-xl text-center text-sm font-medium transition ${
-                  form.new_item_animation === key
+                  effectiveNewItem === key
                     ? 'bg-teal-50 text-teal-700 border-2 border-teal-300'
                     : 'bg-slate-50 text-slate-600 border-2 border-transparent hover:bg-slate-100'
                 }`}
@@ -513,26 +939,33 @@ function SettingsForm({ form, update, logoPreview, uploading, onLogoUpload, savi
             <span>8 detik</span>
           </div>
         </div>
+      </div>
 
-        <div>
+      <div className="bg-white rounded-2xl p-6 border border-slate-100">
+        <h3 className="font-semibold text-slate-800 mb-4">Pengaturan Lainnya</h3>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 mb-2">Kecepatan Scroll</label>
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(SCROLL_SPEED_MAP).map(([key, val]) => (
+              <OptionBtn key={key} active={form.scroll_speed === key} onClick={() => update('scroll_speed', key)}>
+                {val.label}
+              </OptionBtn>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-4">
           <label className="block text-sm font-medium text-slate-700 mb-2">Mode Pemutakhiran</label>
           <div className="grid grid-cols-2 gap-2">
             {[
               { id: 'realtime', label: 'Realtime (SSE)', desc: 'Testimonial muncul instan' },
               { id: 'normal', label: 'Normal (Polling)', desc: 'Update tiap 15 detik' },
             ].map((opt) => (
-              <button
-                key={opt.id}
-                onClick={() => update('poll_interval', opt.id)}
-                className={`p-3 rounded-xl text-center text-sm font-medium transition ${
-                  form.poll_interval === opt.id
-                    ? 'bg-teal-50 text-teal-700 border-2 border-teal-300'
-                    : 'bg-slate-50 text-slate-600 border-2 border-transparent hover:bg-slate-100'
-                }`}
-              >
+              <OptionBtn key={opt.id} active={form.poll_interval === opt.id} onClick={() => update('poll_interval', opt.id)}>
                 <div className="font-semibold">{opt.label}</div>
                 <div className="text-xs text-slate-400 mt-0.5">{opt.desc}</div>
-              </button>
+              </OptionBtn>
             ))}
           </div>
         </div>

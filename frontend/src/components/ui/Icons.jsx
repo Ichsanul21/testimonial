@@ -335,6 +335,60 @@ export function IconMinus({ className = 'w-5 h-5', size }) {
   )
 }
 
+export function IconBounce({ className = 'w-5 h-5', size }) {
+  return (
+    <svg className={size || className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12a7 7 0 0114 0" />
+      <path d="M12 5v3" />
+      <path d="M8 9l4-4 4 4" />
+      <path d="M19 12a7 7 0 01-14 0" />
+      <path d="M12 19v-3" />
+      <path d="M16 15l-4 4-4-4" />
+    </svg>
+  )
+}
+
+export function IconWaterfall({ className = 'w-5 h-5', size }) {
+  return (
+    <svg className={size || className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4v16" />
+      <path d="M10 8v12" />
+      <path d="M16 12v8" />
+      <path d="M20 16v4" />
+      <path d="M2 20h20" />
+    </svg>
+  )
+}
+
+export function IconArrowUp({ className = 'w-5 h-5', size }) {
+  return (
+    <svg className={size || className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="19" x2="12" y2="5" />
+      <polyline points="5 12 12 5 19 12" />
+    </svg>
+  )
+}
+
+export function IconRandom({ className = 'w-5 h-5', size }) {
+  return (
+    <svg className={size || className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 3h5v5" />
+      <path d="M21 3l-7 7" />
+      <path d="M8 21H3v-5" />
+      <path d="M3 21l7-7" />
+    </svg>
+  )
+}
+
+export function IconWave({ className = 'w-5 h-5', size }) {
+  return (
+    <svg className={size || className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 12c1.5-2 4-2 5.5 0s3.5 2 5 0 3.5-2 5 0 4 2 5 0" />
+      <path d="M2 18c1.5-2 4-2 5.5 0s3.5 2 5 0 3.5-2 5 0 4 2 5 0" />
+    </svg>
+  )
+}
+
 export const ICON_MAP = {
   IconChat,
   IconClipboard,
@@ -370,6 +424,11 @@ export const ICON_MAP = {
   IconMusic,
   IconBriefcase,
   IconTrophy,
+  IconBounce,
+  IconWaterfall,
+  IconArrowUp,
+  IconRandom,
+  IconWave,
 }
 
 export const EVENT_ICONS = [

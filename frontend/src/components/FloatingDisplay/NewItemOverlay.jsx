@@ -3,19 +3,57 @@ import { motion, AnimatePresence } from 'framer-motion'
 import TestimonialCard from './TestimonialCard'
 import { NEW_ITEM_VARIANTS } from './animationConfig'
 
-export default function NewItemOverlay({ queue, currentIndex, animationVariant = 'pop-up', duration = 4, themeName, onComplete }) {
+export default function NewItemOverlay({
+  queue,
+  animationVariant = 'pop-up',
+  duration = 4,
+  themeName,
+  onComplete,
+  cardRadius = 'md',
+  cardStyle = 'glass',
+  cardTextColor = 'light',
+  textAlign = 'left',
+  showPhoto = true,
+  showQuote = false,
+  showDate = true,
+  showRelationship = true,
+  photoShape = 'rounded',
+  cardBackdropBlur = 'md',
+  cardOverlayOpacity = 88,
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0)
   const timerRef = useRef(null)
+  const onCompleteRef = useRef(onComplete)
+  const queueLengthRef = useRef(queue.length)
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete
+  }, [onComplete])
+
+  useEffect(() => {
+    queueLengthRef.current = queue.length
+  }, [queue.length])
+
   const item = queue[currentIndex]
 
   useEffect(() => {
-    if (!item) return
+    if (!item) {
+      setCurrentIndex(0)
+      return
+    }
     timerRef.current = setTimeout(() => {
-      onComplete?.(item)
+      const nextIdx = currentIndex + 1
+      if (nextIdx >= queueLengthRef.current) {
+        onCompleteRef.current?.(item)
+        setCurrentIndex(0)
+      } else {
+        setCurrentIndex(nextIdx)
+      }
     }, duration * 1000)
     return () => clearTimeout(timerRef.current)
-  }, [item, duration, onComplete])
+  }, [item, currentIndex, duration])
 
-  if (!item) return null
+  if (!item || queue.length === 0) return null
 
   const variant = NEW_ITEM_VARIANTS[animationVariant] || NEW_ITEM_VARIANTS['pop-up']
 
@@ -33,7 +71,23 @@ export default function NewItemOverlay({ queue, currentIndex, animationVariant =
           {...variant}
           style={{ width: 280 }}
         >
-          <TestimonialCard testimonial={item} themeName={themeName} index={0} animIn="fade" animOut="fade" />
+          <TestimonialCard
+            testimonial={item}
+            themeName={themeName}
+            animIn="fade"
+            animOut="fade"
+            cardRadius={cardRadius}
+            cardStyle={cardStyle}
+            cardTextColor={cardTextColor}
+            textAlign={textAlign}
+            showPhoto={showPhoto}
+            showQuote={showQuote}
+            showDate={showDate}
+            showRelationship={showRelationship}
+            photoShape={photoShape}
+            cardBackdropBlur={cardBackdropBlur}
+            cardOverlayOpacity={cardOverlayOpacity}
+          />
         </motion.div>
       </motion.div>
     </AnimatePresence>
