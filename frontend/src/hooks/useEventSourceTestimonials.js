@@ -12,6 +12,7 @@ export default function useEventSourceTestimonials({ eventSlug = null, pollInter
   const lastIdRef = useRef(0)
   const retryCountRef = useRef(0)
   const initialLoadDone = useRef(false)
+  const firstSseBatch = useRef(true)
 
   const fetchAll = useCallback(async () => {
     try {
@@ -48,6 +49,7 @@ export default function useEventSourceTestimonials({ eventSlug = null, pollInter
 
     function connect() {
       if (!mounted) return
+      firstSseBatch.current = true
       const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/events/${eventSlug}/testimonials/stream`
       const es = new EventSource(url)
       esRef.current = es
@@ -64,10 +66,21 @@ export default function useEventSourceTestimonials({ eventSlug = null, pollInter
         try {
           const data = JSON.parse(e.data)
           const incoming = data.testimonials || []
-          const incomingIds = incoming.map(t => t.id)
           const prioIds = data.priority_ids || []
 
           lastIdRef.current = parseInt(e.lastEventId, 10) || 0
+
+          // Skip overlay trigger on first SSE batch per connection
+          if (firstSseBatch.current) {
+            firstSseBatch.current = false
+            setPriorityIds(prioIds)
+            setQueue(prev => {
+              const existingIds = new Set(prev.map(t => t.id))
+              const trulyNew = incoming.filter(t => !existingIds.has(t.id))
+              return trulyNew.length > 0 ? [...prev, ...trulyNew] : prev
+            })
+            return
+          }
 
           setPriorityIds(prioIds)
 

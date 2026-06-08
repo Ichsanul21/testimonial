@@ -137,6 +137,29 @@ export default function FloatingDisplay({ themeName = 'wedding', eventSlug = nul
     return distribute(allCards, numRows).map((pool) => pool.slice(0, MAX_PER_ROW))
   }, [allCards, numRows])
 
+  const rowStrips = useMemo(() => {
+    return rowPools.map(pool => {
+      if (!pool.length) return { strip: [], scrollDist: 0 }
+      const copies = Math.max(3, Math.ceil((COLS + 2) / Math.max(pool.length, 1)))
+      const base = Array.from({ length: copies }, () => pool).flat()
+      for (let i = base.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [base[i], base[j]] = [base[j], base[i]]
+      }
+      for (let i = 1; i < base.length; i++) {
+        if (base[i].id === base[i - 1].id) {
+          for (let j = i + 1; j < base.length; j++) {
+            if (base[j].id !== base[i - 1].id) {
+              [base[i], base[j]] = [base[j], base[i]]
+              break
+            }
+          }
+        }
+      }
+      return { strip: base, scrollDist: base.length * CARD_UNIT }
+    })
+  }, [rowPools])
+
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === 'f') setIsFullscreen((v) => !v)
@@ -259,9 +282,7 @@ export default function FloatingDisplay({ themeName = 'wedding', eventSlug = nul
             )
           }
 
-          const copies = Math.max(3, Math.ceil((COLS + 2) / Math.max(pool.length, 1)))
-          const strip = Array.from({ length: copies }, () => pool).flat()
-          const scrollDist = strip.length * CARD_UNIT
+          const { strip, scrollDist } = rowStrips[rowIdx] || { strip: [], scrollDist: 0 }
 
           return (
             <div
