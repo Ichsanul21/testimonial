@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import TestimonialCard from './TestimonialCard'
 import { NEW_ITEM_VARIANTS } from './animationConfig'
+
+const MERGE_DURATION = 500
 
 export default function NewItemOverlay({
   queue,
@@ -22,36 +24,46 @@ export default function NewItemOverlay({
   cardOverlayOpacity = 88,
 }) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [phase, setPhase] = useState(null)
   const timerRef = useRef(null)
   const onCompleteRef = useRef(onComplete)
-  const queueLengthRef = useRef(queue.length)
+
+  const showMs = useMemo(() => Math.max(duration * 1000 - MERGE_DURATION, 1000), [duration])
 
   useEffect(() => {
     onCompleteRef.current = onComplete
   }, [onComplete])
-
-  useEffect(() => {
-    queueLengthRef.current = queue.length
-  }, [queue.length])
 
   const item = queue[currentIndex]
 
   useEffect(() => {
     if (!item) {
       setCurrentIndex(0)
+      setPhase(null)
       return
     }
+    let cancelled = false
+    setPhase('show')
     timerRef.current = setTimeout(() => {
-      const nextIdx = currentIndex + 1
-      if (nextIdx >= queueLengthRef.current) {
-        onCompleteRef.current?.(item)
-        setCurrentIndex(0)
-      } else {
-        setCurrentIndex(nextIdx)
-      }
-    }, duration * 1000)
-    return () => clearTimeout(timerRef.current)
-  }, [item, currentIndex, duration])
+      if (cancelled) return
+      setPhase('merge')
+      timerRef.current = setTimeout(() => {
+        if (cancelled) return
+        const nextIdx = currentIndex + 1
+        if (nextIdx >= queue.length) {
+          onCompleteRef.current?.(item)
+          setCurrentIndex(0)
+        } else {
+          setCurrentIndex(nextIdx)
+        }
+        setPhase(null)
+      }, MERGE_DURATION)
+    }, showMs)
+    return () => {
+      cancelled = true
+      clearTimeout(timerRef.current)
+    }
+  }, [item, currentIndex, queue.length, showMs])
 
   if (!item || queue.length === 0) return null
 
@@ -68,9 +80,38 @@ export default function NewItemOverlay({
         transition={{ duration: 0.3 }}
       >
         <motion.div
-          {...variant}
+          className="relative"
           style={{ width: 280 }}
+          animate={{
+            scale: phase === 'show' ? 1.12 : 1,
+            boxShadow: phase === 'show'
+              ? '0 0 30px rgba(6, 182, 212, 0.35), 0 0 60px rgba(6, 182, 212, 0.15)'
+              : 'none',
+          }}
+          transition={{
+            scale: phase === 'merge' ? { duration: 0.5, ease: 'easeInOut' } : { duration: 0.3 },
+            boxShadow: phase === 'merge' ? { duration: 0.5, ease: 'easeInOut' } : { duration: 0.3 },
+          }}
+          {...variant}
         >
+          <AnimatePresence>
+            {phase === 'show' && (
+              <motion.div
+                className="absolute -top-2 -right-2 z-10 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                style={{
+                  background: 'linear-gradient(135deg, #06b6d4, #14b8a6)',
+                  color: '#fff',
+                  boxShadow: '0 2px 8px rgba(6, 182, 212, 0.4)',
+                }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{ duration: 0.25 }}
+              >
+                NEW
+              </motion.div>
+            )}
+          </AnimatePresence>
           <TestimonialCard
             testimonial={item}
             themeName={themeName}

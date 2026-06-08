@@ -11,6 +11,7 @@ export default function useEventSourceTestimonials({ eventSlug = null, pollInter
   const pollRef = useRef(null)
   const lastIdRef = useRef(0)
   const retryCountRef = useRef(0)
+  const initialLoadDone = useRef(false)
 
   const fetchAll = useCallback(async () => {
     try {
@@ -19,8 +20,11 @@ export default function useEventSourceTestimonials({ eventSlug = null, pollInter
       const res = await api.get(url, { params })
       setQueue(res.data.data || [])
       setPriorityIds(res.data.priority_ids || [])
+      setNewItems([])
+      initialLoadDone.current = true
       setLoading(false)
     } catch {
+      initialLoadDone.current = true
       setLoading(false)
     }
   }, [eventSlug])
@@ -71,13 +75,17 @@ export default function useEventSourceTestimonials({ eventSlug = null, pollInter
             const existingIds = new Set(prev.map(t => t.id))
             const trulyNew = incoming.filter(t => !existingIds.has(t.id))
             if (trulyNew.length > 0) {
-              setNewItems(trulyNew)
+              if (initialLoadDone.current) {
+                setNewItems(trulyNew)
+              }
               return [...prev, ...trulyNew]
             }
             return prev
           })
 
-          setLoading(false)
+          if (initialLoadDone.current) {
+            setLoading(false)
+          }
         } catch {}
       })
 
